@@ -1,6 +1,7 @@
 import bt2
 import os
 import xml.etree.ElementTree as etree
+from datetime import datetime
 
 
 class GpxIter(bt2._UserMessageIterator):
@@ -13,20 +14,13 @@ class GpxIter(bt2._UserMessageIterator):
         self._trk_stream_class = self._trace_class[0]
         assert self._trk_stream_class.name == "trk"
         self._trk_stream = self._trace.create_stream(self._trk_stream_class)
-        self._trk_packet = self._trk_stream.create_packet()
 
         self._trkpt_event_class = self._trk_stream_class[0]
         assert self._trkpt_event_class.name == "trkpt"
 
-        self._init_msgs = [
-            self._create_stream_beginning_message(self._trk_stream),
-            self._create_packet_beginning_message(self._trk_packet),
-        ]
+        self._init_msgs = [self._create_stream_beginning_message(self._trk_stream)]
 
-        self._end_msgs = [
-            self._create_packet_end_message(self._trk_packet),
-            self._create_stream_end_message(self._trk_stream),
-        ]
+        self._end_msgs = [self._create_stream_end_message(self._trk_stream)]
 
         self._trkpt_iter = self._trk_elem.iter(
             "{http://www.topografix.com/GPX/1/1}trkpt"
@@ -50,8 +44,12 @@ class GpxIter(bt2._UserMessageIterator):
             ele_elem = trkpt.find("{http://www.topografix.com/GPX/1/1}ele")
             ele = float(ele_elem.text)
 
+            time_elem = trkpt.find("{http://www.topografix.com/GPX/1/1}time")
+            time = datetime.strptime(time_elem.text, "%Y-%m-%dT%H:%M:%SZ")
+            ts = int(datetime.timestamp(time))
+
             event_msg = self._create_event_message(
-                self._trkpt_event_class, self._trk_packet
+                self._trkpt_event_class, self._trk_stream, default_clock_snapshot=ts
             )
             event_msg.event.payload_field["lat"] = lat
             event_msg.event.payload_field["lon"] = lon
@@ -76,41 +74,50 @@ class GpxSource(bt2._UserSourceComponent, message_iterator_class=GpxIter):
     def __init__(self, params):
         print("GpxSource: Creating with params {}".format(params))
 
-        if "paths" not in params:
-            raise ValueError("GpxSource: missing `paths` parameter")
+        if "inputs" not in params:
+            raise ValueError("GpxSource: missing `inputs` parameter")
 
-        paths = params["paths"]
+        inputs = params["inputs"]
 
-        if type(paths) != bt2.ArrayValue:
+        if type(inputs) != bt2.ArrayValue:
             raise TypeError(
-                "GpxSource: expecting `paths` parameter to be a list, got a {}".format(
-                    type(paths)
+                "GpxSource: expecting `inputs` parameter to be a list, got a {}".format(
+                    type(inputs)
+                )
+            )
+
+        if len(inputs) != 1:
+            raise ValueError(
+                "GpxSource: expecting `inputs` parameter to be of length, got {}".format(
+                    len(inputs)
+                )
+            )
+
+        if type(inputs[0]) != bt2.StringValue:
+            raise TypeError(
+                "GpxSource: expecting `inputs[0]` parameter to be a string, got a {}".format(
+                    type(inputs[0])
                 )
             )
 
         trace_class = self._create_metadata()
 
-        for path in paths:
-            if type(path) != bt2.StringValue:
-                raise TypeError(
-                    "GpxSource: expecting `paths` parameter element to be a string, got a {}".format(
-                        type(path)
-                    )
-                )
-
-            self._create_ports_for_file(str(path), trace_class)
+        self._create_ports_for_file(str(inputs[0]), trace_class)
 
     def _create_metadata(self):
+        clock_class = self._create_clock_class(frequency=1)
         trace_class = self._create_trace_class()
 
-        sc = trace_class.create_stream_class(name="trk")
+        sc = trace_class.create_stream_class(
+            name="trk", default_clock_class=clock_class
+        )
 
         # 'trkpt' event
         trkpt_payload = trace_class.create_structure_field_class()
         trkpt_payload.append_member("lat", trace_class.create_real_field_class())
         trkpt_payload.append_member("lon", trace_class.create_real_field_class())
         trkpt_payload.append_member("ele", trace_class.create_real_field_class())
-        trkpt_event = sc.create_event_class(
+        sc.create_event_class(
             name="trkpt", payload_field_class=trkpt_payload
         )
 
@@ -120,16 +127,29 @@ class GpxSource(bt2._UserSourceComponent, message_iterator_class=GpxIter):
 
         return trace_class
 
-    def _create_ports_for_file(self, path, trace_class):
-        if not os.path.isfile(path):
-            raise ValueError("GpxSource: {} is not a file".format(path))
+    def _create_ports_for_file(self, input, trace_class):
+        if not os.path.isfile(input):
+            raise ValueError("GpxSource: {} is not a file".format(input))
 
-        tree = etree.parse(path)
+        tree = etree.parse(input)
         assert tree.getroot().tag == "{http://www.topografix.com/GPX/1/1}gpx"
 
         for trk in tree.findall("{http://www.topografix.com/GPX/1/1}trk"):
             print("GpxSource: Adding output port for track", trk)
             self._add_output_port("out", (trk, trace_class))
+
+    @staticmethod
+    def _query(query_executor, obj, params, log_level):
+
+        if obj == "support-info":
+            if params["type"] == "file" and str(params["input"]).endswith(".gpx"):
+                w = 0.25
+            else:
+                w = 0.0
+
+            return {"weight": w}
+        else:
+            raise NotImplementedError
 
 
 bt2.register_plugin(
