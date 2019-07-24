@@ -1,5 +1,6 @@
 import bt2
 import bintrees
+import itertools
 import matplotlib.pyplot as plt
 
 class Plot(object):
@@ -33,6 +34,7 @@ class Plot(object):
     def __format_filename(title):
         title = title.lower()
         title = "".join("-" if not c.isalnum() else c for c in title)
+        title = "".join(["".join(j) if i != '-' else i for (i, j) in itertools.groupby(title)])
         return f"{title}.pdf"
 
 class TimedPlot(Plot):
