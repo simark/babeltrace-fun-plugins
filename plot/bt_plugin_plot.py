@@ -3,57 +3,39 @@ import bintrees
 import itertools
 import matplotlib.pyplot as plt
 
-class Plot(object):
-    def __init__(self, title="Untitled", x_label="Untitled", y_label="Untitled"):
-        self.__title = title
-        self.__x_label = x_label
-        self.__y_label = y_label
+class DataLogger(object):
+    def __init__(self, name="Untitled"):
+            self.__name = name
 
-    def _get_x_data(self):
+    def get_name(self):
+        return self.__name
+
+    def get_x_data(self):
         raise NotImplementedError
 
-    def _get_y_data(self):
+    def get_y_data(self):
         raise NotImplementedError
 
     def received_event(self, ts, event):
         raise NotImplementedError
 
-    def plot(self):
-        figure = plt.figure()
-        plt.title(self.__title)
-        plt.xlabel(self.__x_label, figure=figure)
-        plt.ylabel(self.__y_label, figure=figure)
-
-        x = self._get_x_data()
-        y = self._get_y_data()
-        plt.plot(x, y, figure=figure)
-
-        plt.savefig(Plot.__format_filename(self.__title))
-
-    @staticmethod
-    def __format_filename(title):
-        title = title.lower()
-        title = "".join("-" if not c.isalnum() else c for c in title)
-        title = "".join(["".join(j) if i != '-' else i for (i, j) in itertools.groupby(title)])
-        return f"{title}.pdf"
-
-class TimedPlot(Plot):
+class TimedDataLogger(DataLogger):
     """
         This class allow a simple set of data of the form (ts, value) to be
         plotted.
     """
     def __init__(self, data, *args, **kwargs):
-        super(TimedPlot, self).__init__(*args, **kwargs)
+        super(TimedDataLogger, self).__init__(*args, **kwargs)
 
         (self.__event, self.__field) = data
 
         self.__timestamps = []
         self.__values = []
 
-    def _get_x_data(self):
+    def get_x_data(self):
         return self.__timestamps
 
-    def _get_y_data(self):
+    def get_y_data(self):
         return self.__values
 
     def received_event(self, ts, event):
@@ -65,7 +47,7 @@ class TimedPlot(Plot):
         self.__timestamps.append(ts)
         self.__values.append(value)
 
-class InterpolatedPlot(Plot):
+class InterpolatedDataLogger(DataLogger):
     """
         This class allow two set of data of the form (t1, v1) and (t2, v2) to
         be plot against each other like v1 versus v2 (e.g. when plotting
@@ -82,7 +64,7 @@ class InterpolatedPlot(Plot):
             tX_0 < tX_1 < ... < tX_N.
     """
     def __init__(self, data1, data2, *args, **kwargs):
-        super(InterpolatedPlot, self).__init__(*args, **kwargs)
+        super(InterpolatedDataLogger, self).__init__(*args, **kwargs)
 
         (self.__event1, self.__field1) = data1
         (self.__event2, self.__field2) = data2
@@ -97,11 +79,11 @@ class InterpolatedPlot(Plot):
         self.__y_needs_interpolation = dict()
         self.__y_received_values = bintrees.AVLTree()
 
-    def _get_x_data(self):
+    def get_x_data(self):
         self.__interpolate_x_data()
         return self.__x_values
 
-    def _get_y_data(self):
+    def get_y_data(self):
         self.__interpolate_y_data()
         return self.__y_values
 
@@ -177,13 +159,44 @@ class InterpolatedPlot(Plot):
         self.__x_values.append(None)
         self.__x_needs_interpolation[len(self.__y_timestamps)-1] = ts
 
+class Plot(object):
+    def __init__(self, loggers, title="Untitled", x_label="Untitled", y_label="Untitled"):
+        self.__loggers = loggers
+        self.__title = title
+        self.__x_label = x_label
+        self.__y_label = y_label
+
+    def received_event(self, ts, event):
+        for logger in self.__loggers:
+            logger.received_event(ts, event)
+
+    def plot(self):
+        figure = plt.figure()
+        plt.title(self.__title)
+        plt.xlabel(self.__x_label, figure=figure)
+        plt.ylabel(self.__y_label, figure=figure)
+
+        for logger in self.__loggers:
+            x = logger.get_x_data()
+            y = logger.get_y_data()
+            plt.plot(x, y, figure=figure)
+
+        plt.savefig(Plot.__format_filename(self.__title))
+
+    @staticmethod
+    def __format_filename(title):
+        title = title.lower()
+        title = "".join("-" if not c.isalnum() else c for c in title)
+        title = "".join(["".join(j) if i != '-' else i for (i, j) in itertools.groupby(title)])
+        return f"{title}.pdf"
+
 @bt2.plugin_component_class
 class PlotSink(bt2._UserSinkComponent):
     def __init__(self, params):
         self.__plots = []
 
-        self.__create_timed_plots(params)
-        self.__create_interpolated_plots(params)
+        for plot in params["plots"]:
+            self.__plots.append(self.__create_plot(plot))
 
         self._add_input_port("in")
 
@@ -199,42 +212,47 @@ class PlotSink(bt2._UserSinkComponent):
             { plot.plot() for plot in self.__plots }
             return
 
-        ts = msg.default_clock_snapshot.value / 1e3
+        ts = msg.default_clock_snapshot.value
         { plot.received_event(ts, msg.event) for plot in self.__plots }
 
     def _graph_is_configured(self):
         self.__iter = self._input_ports["in"].create_message_iterator()
 
-    def __create_timed_plots(self, params):
-        if "timed" not in params:
-            return
+    def __create_plot(self, params):
+        loggers = []
+        for logger in params[3]:
+            if logger[0] == 'timed':
+                logger = self.__create_timed_logger(logger)
+            elif logger[0] == 'interpolated':
+                logger = self.__create_interpolated_logger(logger)
+            else:
+                raise ValueError
 
-        for args in params["timed"]:
-            if len(args) != 5:
-                raise ValueError("timed plot requires 5 parameters")
+            loggers.append(logger)
 
-            self.__plots.append(TimedPlot(
-                (str(args[0]), str(args[1])),
-                title=str(args[2]),
-                x_label=str(args[3]),
-                y_label=str(args[4])
-            ))
+        title = str(params[0])
+        x_label = str(params[1])
+        y_label = str(params[2])
 
-    def __create_interpolated_plots(self, params):
-        if "interpolated" not in params:
-            return
+        return Plot(
+            loggers,
+            title=title,
+            x_label=x_label,
+            y_label=y_label
+        )
 
-        for args in params["interpolated"]:
-            if len(args) != 7:
-                raise ValueError("interpolated plot requires 7 parameters")
+    def __create_timed_logger(self, params):
+        return TimedDataLogger(
+            (str(params[2]), str(params[3])),
+            name=str(params[1])
+        )
 
-            self.__plots.append(InterpolatedPlot(
-                (str(args[0]), str(args[1])),
-                (str(args[2]), str(args[3])),
-                title=str(args[4]),
-                x_label=str(args[5]),
-                y_label=str(args[6])
-            ))
+    def __create_interpolated_logger(self, params):
+        return InterpolatedDataLogger(
+            (str(params[2]), str(params[3])),
+            (str(params[4]), str(params[5])),
+            name=str(params[1])
+        )
 
 bt2.register_plugin(
     module_name=__name__,
