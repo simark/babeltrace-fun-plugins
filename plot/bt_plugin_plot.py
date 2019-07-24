@@ -196,7 +196,7 @@ class PlotSink(bt2._UserSinkComponent):
         self.__plots = []
 
         for plot in params["plots"]:
-            self.__plots.append(self.__create_plot(plot))
+            self.__plots.append(PlotSink.create_plot(plot))
 
         self._add_input_port("in")
 
@@ -218,13 +218,14 @@ class PlotSink(bt2._UserSinkComponent):
     def _graph_is_configured(self):
         self.__iter = self._input_ports["in"].create_message_iterator()
 
-    def __create_plot(self, params):
+    @staticmethod
+    def create_plot(params):
         loggers = []
         for logger in params[3]:
             if logger[0] == 'timed':
-                logger = self.__create_timed_logger(logger)
+                logger = PlotSink.create_timed_logger(logger)
             elif logger[0] == 'interpolated':
-                logger = self.__create_interpolated_logger(logger)
+                logger = PlotSink.create_interpolated_logger(logger)
             else:
                 raise ValueError
 
@@ -241,13 +242,15 @@ class PlotSink(bt2._UserSinkComponent):
             y_label=y_label
         )
 
-    def __create_timed_logger(self, params):
+    @staticmethod
+    def create_timed_logger(params):
         return TimedDataLogger(
             (str(params[2]), str(params[3])),
             name=str(params[1])
         )
 
-    def __create_interpolated_logger(self, params):
+    @staticmethod
+    def create_interpolated_logger(params):
         return InterpolatedDataLogger(
             (str(params[2]), str(params[3])),
             (str(params[4]), str(params[5])),
