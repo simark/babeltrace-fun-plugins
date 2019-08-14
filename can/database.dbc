@@ -1,0 +1,529 @@
+VERSION ""
+
+NS_ : 
+	NS_DESC_
+	CM_
+	BA_DEF_
+	BA_
+	VAL_
+	CAT_DEF_
+	CAT_
+	FILTER
+	BA_DEF_DEF_
+	EV_DATA_
+	ENVVAR_DATA_
+	SGTYPE_
+	SGTYPE_VAL_
+	BA_DEF_SGTYPE_
+	BA_SGTYPE_
+	SIG_TYPE_REF_
+	VAL_TABLE_
+	SIG_GROUP_
+	SIG_VALTYPE_
+	SIGTYPE_VALTYPE_
+	BO_TX_BU_
+	BA_DEF_REL_
+	BA_REL_
+	BA_DEF_DEF_REL_
+	BU_SG_REL_
+	BU_EV_REL_
+	BU_BO_REL_
+	SG_MUL_VAL_
+
+BS_:
+
+BU_: SLAVE1 SLAVE2 SLAVE3 SLAVE4 SLAVE5 MASTER DASH DAQ DRIVE CHARGER TCS DEBUG
+
+BO_ 5 REQUEST_CHARGING: 0 DEBUG
+
+BO_ 211 LOW_VOLTAGE: 4 MASTER
+ SG_ VOLTAGE : 0|16@1+ (0.457770656900893,0) [0|30000] "" DEBUG
+ SG_ CURRENT : 16|16@1+ (0.00022888532845044633,0) [0|15] "A" DEBUG
+
+BO_ 210 HIGH_VOLTAGE: 4 MASTER
+ SG_ VOLTAGE : 0|16@1+ (1,0) [0|65535] "" DEBUG
+ SG_ CURRENT : 16|16@1+ (0.012207217517357137,-400) [-400|400] "A" DEBUG
+
+BO_ 209 BATTERY: 4 MASTER
+ SG_ VOLTAGE : 0|16@1+ (0.457770656900893,0) [0|30000] "" DEBUG
+ SG_ CURRENT : 16|16@1+ (0.000457770656900893,-15) [-15|15] "A" DEBUG
+
+BO_ 81 COMMAND_EQUILIBRATION: 2 MASTER
+ SG_ DISCHARGE_THRESHOLD : 1|14@1+ (0.18311105685,1500) [1500|4499.90844437355] "" SLAVE1,SLAVE2,SLAVE3,SLAVE4,SLAVE5
+ SG_ ACTIVATE_BALANCING : 0|1@1- (1,0) [0|1] "" SLAVE1,SLAVE2,SLAVE3,SLAVE4,SLAVE5
+
+BO_ 208 MASTER_ERRORS: 4 DEBUG
+ SG_ TIMEOUT_VOLTAGE : 14|1@1+ (1,0) [0|1] "" DEBUG
+ SG_ TIMEOUT_TEMPERATURE : 15|1@1+ (1,0) [0|1] "" DEBUG
+ SG_ TIMEOUT_TCS : 27|1@1+ (1,0) [0|1] "" DEBUG
+ SG_ TIMEOUT_SLAVE5 : 20|1@1+ (1,0) [0|1] "" DEBUG
+ SG_ TIMEOUT_SLAVE4 : 19|1@1+ (1,0) [0|1] "" DEBUG
+ SG_ TIMEOUT_SLAVE3 : 18|1@1+ (1,0) [0|1] "" DEBUG
+ SG_ TIMEOUT_SLAVE2 : 17|1@1+ (1,0) [0|1] "" DEBUG
+ SG_ TIMEOUT_SLAVE1 : 16|1@1+ (1,0) [0|1] "" DEBUG
+ SG_ TIMEOUT_PRECHARGE : 21|1@1+ (1,0) [0|1] "" DEBUG
+ SG_ TIMEOUT_OPEN_CURR : 23|1@1+ (1,0) [0|1] "" DEBUG
+ SG_ TIMEOUT_DRIVE : 28|1@1+ (1,0) [0|1] "" DEBUG
+ SG_ TIMEOUT_DISCHARGE : 22|1@1+ (1,0) [0|1] "" DEBUG
+ SG_ TIMEOUT_DASH : 26|1@1+ (1,0) [0|1] "" DEBUG
+ SG_ TIMEOUT_CHARGER : 29|1@1+ (1,0) [0|1] "" DEBUG
+ SG_ MISSING_VOLTAGE : 12|1@1+ (1,0) [0|1] "" DEBUG
+ SG_ MISSING_TEMPERATURE : 13|1@1+ (1,0) [0|1] "" DEBUG
+ SG_ MINIMUM_VOLTAGE : 1|1@1+ (1,0) [0|1] "" DEBUG
+ SG_ MINIMUM_TEMPERATURE : 3|1@1+ (1,0) [0|1] "" DEBUG
+ SG_ MAXIMUM_VOLTAGE : 0|1@1+ (1,0) [0|1] "" DEBUG
+ SG_ MAXIMUM_TEMPERATURE : 2|1@1+ (1,0) [0|1] "" DEBUG
+ SG_ MAXIMUM_PEAK_CURR : 6|1@1+ (1,0) [0|1] "" DEBUG
+ SG_ MAXIMUM_MEAN_CURR : 5|1@1+ (1,0) [0|1] "" DEBUG
+ SG_ INTERLOCK_OPENED : 7|1@1+ (1,0) [0|1] "" DEBUG
+ SG_ IMD_TRIGGERED : 4|1@1+ (1,0) [0|1] "" DEBUG
+ SG_ HSD3_FAILSAFE : 11|1@1+ (1,0) [0|1] "" DEBUG
+ SG_ HSD2_FAILSAFE : 10|1@1+ (1,0) [0|1] "" DEBUG
+ SG_ HSD1_FAILSAFE : 9|1@1+ (1,0) [0|1] "" DEBUG
+ SG_ DCDC_FAULT : 8|1@1+ (1,0) [0|1] "" DEBUG
+ SG_ AIR_PLUS_FEEDBACK : 25|1@1+ (1,0) [0|1] "" DEBUG
+ SG_ AIR_MINUS_FEEDBACK : 24|1@1+ (1,0) [0|1] "" DEBUG
+
+BO_ 1 AIRS_OPENING: 0 MASTER
+
+BO_ 110 SLAVE1_LOW_PRIORITY_TEMPERATURE: 8 SLAVE1
+ SG_ CHANNEL1 : 0|6@1+ (1,0) [0|56] "C" MASTER
+ SG_ VALUE1 : 6|12@1+ (0.0166666666666667,0) [0|68.25] "C" MASTER
+ SG_ CHANNEL2 : 18|6@1+ (1,0) [0|56] "C" MASTER
+ SG_ VALUE2 : 24|12@1+ (0.0166666666666667,0) [0|0] "C" MASTER
+
+BO_ 21 SLAVE1_HIGH_PRIORITY_TEMPERATURE: 8 SLAVE1
+ SG_ CHANNEL1 : 0|6@1+ (1,0) [0|56] "C" MASTER
+ SG_ VALUE1 : 6|12@1+ (0.0166666666666667,0) [0|68.25] "C" MASTER
+ SG_ CHANNEL2 : 18|6@1+ (1,0) [0|56] "C" MASTER
+ SG_ VALUE2 : 24|12@1+ (0.0166666666666667,0) [0|68.25] "C" MASTER
+
+BO_ 16 SLAVE1_HIGH_PRIORITY_VOLTAGE: 8 SLAVE1
+ SG_ START_CHANNEL : 0|5@1+ (1,0) [0|14] "" MASTER
+ SG_ VOLTAGE1 : 5|14@1+ (0.183116645,1500) [1500|4499.999995035] "mV" MASTER
+ SG_ VOLTAGE2 : 19|14@1+ (0.183116645,1500) [1500|4499.999995035] "mV" MASTER
+ SG_ VOLTAGE3 : 33|14@1+ (0.183116645,1500) [1500|4499.999995035] "mV" MASTER
+ SG_ VOLTAGE4 : 47|14@1+ (0.183116645,1500) [1500|4499.999995035] "mV" MASTER
+
+BO_ 105 SLAVE1_LOW_PRIORITY_VOLTAGE: 8 SLAVE1
+ SG_ START_CHANNEL M : 0|5@1+ (1,0) [0|14] "" MASTER
+ SG_ VOLTAGE0  m0  : 5|14@1+ (0.183116645,1500) [1500|4499.999995035] "mV" MASTER
+ SG_ VOLTAGE1  m0  : 19|14@1+ (0.183116645,1500) [1500|4499.999995035] "mV" MASTER
+ SG_ VOLTAGE2  m0  : 33|14@1+ (0.183116645,1500) [1500|4499.999995035] "mV" MASTER
+ SG_ VOLTAGE3  m0  : 47|14@1+ (0.183116645,1500) [1500|4499.999995035] "mV" MASTER
+ SG_ VOLTAGE4  m4  : 5|14@1+ (0.183116645,1500) [1500|4499.999995035] "mV" MASTER
+ SG_ VOLTAGE5  m4  : 19|14@1+ (0.183116645,1500) [1500|4499.999995035] "mV" MASTER
+ SG_ VOLTAGE6  m4  : 33|14@1+ (0.183116645,1500) [1500|4499.999995035] "mV" MASTER
+ SG_ VOLTAGE7  m4  : 47|14@1+ (0.183116645,1500) [1500|4499.999995035] "mV" MASTER
+ SG_ VOLTAGE8  m8  : 5|14@1+ (0.183116645,1500) [1500|4499.999995035] "mV" MASTER
+ SG_ VOLTAGE9  m8  : 19|14@1+ (0.183116645,1500) [1500|4499.999995035] "mV" MASTER
+ SG_ VOLTAGE10 m8  : 33|14@1+ (0.183116645,1500) [1500|4499.999995035] "mV" MASTER
+ SG_ VOLTAGE11 m8  : 47|14@1+ (0.183116645,1500) [1500|4499.999995035] "mV" MASTER
+ SG_ VOLTAGE12 m12 : 5|14@1+ (0.183116645,1500) [1500|4499.999995035] "mV" MASTER
+ SG_ VOLTAGE13 m12 : 19|14@1+ (0.183116645,1500) [1500|4499.999995035] "mV" MASTER
+ SG_ VOLTAGE14 m12 : 33|14@1+ (0.183116645,1500) [1500|4499.999995035] "mV" MASTER
+ SG_ VOLTAGE15 m12 : 47|14@1+ (0.183116645,1500) [1500|4499.999995035] "mV" MASTER
+
+BO_ 111 SLAVE2_LOW_PRIORITY_TEMPERATURE: 8 SLAVE2
+ SG_ CHANNEL1 : 0|6@1+ (1,0) [0|56] "C" MASTER
+ SG_ VALUE1 : 6|12@1+ (0.0166666666666667,0) [0|68.25] "C" MASTER
+ SG_ CHANNEL2 : 18|6@1+ (1,0) [0|56] "C" MASTER
+ SG_ VALUE2 : 24|12@1+ (0.0166666666666667,0) [0|68.25] "C" MASTER
+
+BO_ 22 SLAVE2_HIGH_PRIORITY_TEMPERATURE: 8 SLAVE2
+ SG_ CHANNEL1 : 0|6@1+ (1,0) [0|56] "C" MASTER
+ SG_ VALUE1 : 6|12@1+ (0.0166666666666667,0) [0|68.25] "C" MASTER
+ SG_ CHANNEL2 : 18|6@1+ (1,0) [0|56] "C" MASTER
+ SG_ VALUE2 : 24|12@1+ (0.0166666666666667,0) [0|68.25] "C" MASTER
+
+BO_ 17 SLAVE2_HIGH_PRIORITY_VOLTAGE: 8 SLAVE2
+ SG_ START_CHANNEL : 0|5@1+ (1,0) [0|14] "" MASTER
+ SG_ VOLTAGE1 : 5|14@1+ (0.183116645,1500) [1500|4499.999995035] "mV" MASTER
+ SG_ VOLTAGE2 : 19|14@1+ (0.183116645,1500) [1500|4499.999995035] "mV" MASTER
+ SG_ VOLTAGE3 : 33|14@1+ (0.183116645,1500) [1500|4499.999995035] "mV" MASTER
+ SG_ VOLTAGE4 : 47|14@1+ (0.183116645,1500) [1500|4499.999995035] "mV" MASTER
+
+BO_ 106 SLAVE2_LOW_PRIORITY_VOLTAGE: 8 SLAVE2
+ SG_ START_CHANNEL : 0|5@1+ (1,0) [0|14] "" MASTER
+ SG_ VOLTAGE1 : 5|14@1+ (0.183116645,1500) [1500|4499.999995035] "mV" MASTER
+ SG_ VOLTAGE2 : 19|14@1+ (0.183116645,1500) [1500|4499.999995035] "mV" MASTER
+ SG_ VOLTAGE3 : 33|14@1+ (0.183116645,1500) [1500|4499.999995035] "mV" MASTER
+ SG_ VOLTAGE4 : 47|14@1+ (0.183116645,1500) [1500|4499.999995035] "mV" MASTER
+
+BO_ 112 SLAVE3_LOW_PRIORITY_TEMPERATURE: 8 SLAVE3
+ SG_ CHANNEL1 : 0|6@1+ (1,0) [0|56] "C" MASTER
+ SG_ VALUE1 : 6|12@1+ (0.0166666666666667,0) [0|68.25] "C" MASTER
+ SG_ CHANNEL2 : 18|6@1+ (1,0) [0|56] "C" MASTER
+ SG_ VALUE2 : 24|12@1+ (0.0166666666666667,0) [0|68.25] "C" MASTER
+
+BO_ 23 SLAVE3_HIGH_PRIORITY_TEMPERATURE: 8 SLAVE3
+ SG_ CHANNEL1 : 0|6@1+ (1,0) [0|56] "C" MASTER
+ SG_ VALUE1 : 6|12@1+ (0.0166666666666667,0) [0|68.25] "C" MASTER
+ SG_ CHANNEL2 : 18|6@1+ (1,0) [0|56] "C" MASTER
+ SG_ VALUE2 : 24|12@1+ (0.0166666666666667,0) [0|68.25] "C" MASTER
+
+BO_ 18 SLAVE3_HIGH_PRIORITY_VOLTAGE: 8 SLAVE3
+ SG_ START_CHANNEL : 0|5@1+ (1,0) [0|14] "" MASTER
+ SG_ VOLTAGE1 : 5|14@1+ (0.183116645,1500) [1500|4499.999995035] "mV" MASTER
+ SG_ VOLTAGE2 : 19|14@1+ (0.183116645,1500) [1500|4499.999995035] "mV" MASTER
+ SG_ VOLTAGE3 : 33|14@1+ (0.183116645,1500) [1500|4499.999995035] "mV" MASTER
+ SG_ VOLTAGE4 : 47|14@1+ (0.183116645,1500) [1500|4499.999995035] "mV" MASTER
+
+BO_ 107 SLAVE3_LOW_PRIORITY_VOLTAGE: 8 SLAVE3
+ SG_ START_CHANNEL : 0|5@1+ (1,0) [0|14] "" MASTER
+ SG_ VOLTAGE1 : 5|14@1+ (0.183116645,1500) [1500|4499.999995035] "mV" MASTER
+ SG_ VOLTAGE2 : 19|14@1+ (0.183116645,1500) [1500|4499.999995035] "mV" MASTER
+ SG_ VOLTAGE3 : 33|14@1+ (0.183116645,1500) [1500|4499.999995035] "mV" MASTER
+ SG_ VOLTAGE4 : 47|14@1+ (0.183116645,1500) [1500|4499.999995035] "mV" MASTER
+
+BO_ 113 SLAVE4_LOW_PRIORITY_TEMPERATURE: 8 SLAVE4
+ SG_ CHANNEL1 : 0|6@1+ (1,0) [0|56] "C" MASTER
+ SG_ VALUE1 : 6|12@1+ (0.0166666666666667,0) [0|68.25] "C" MASTER
+ SG_ CHANNEL2 : 18|6@1+ (1,0) [0|56] "C" MASTER
+ SG_ VALUE2 : 24|12@1+ (0.0166666666666667,0) [0|68.25] "C" MASTER
+
+BO_ 24 SLAVE4_HIGH_PRIORITY_TEMPERATURE: 8 SLAVE4
+ SG_ CHANNEL1 : 0|6@1+ (1,0) [0|56] "C" MASTER
+ SG_ VALUE1 : 6|12@1+ (0.0166666666666667,0) [0|68.25] "C" MASTER
+ SG_ CHANNEL2 : 18|6@1+ (1,0) [0|56] "C" MASTER
+ SG_ VALUE2 : 24|12@1+ (0.0166666666666667,0) [0|68.25] "C" MASTER
+
+BO_ 19 SLAVE4_HIGH_PRIORITY_VOLTAGE: 8 SLAVE4
+ SG_ START_CHANNEL : 0|5@1+ (1,0) [0|14] "" MASTER
+ SG_ VOLTAGE1 : 5|14@1+ (0.183116645,1500) [1500|4499.999995035] "mV" MASTER
+ SG_ VOLTAGE2 : 19|14@1+ (0.183116645,1500) [1500|4499.999995035] "mV" MASTER
+ SG_ VOLTAGE3 : 33|14@1+ (0.183116645,1500) [1500|4499.999995035] "mV" MASTER
+ SG_ VOLTAGE4 : 47|14@1+ (0.183116645,1500) [1500|4499.999995035] "mV" MASTER
+
+BO_ 108 SLAVE4_LOW_PRIORITY_VOLTAGE: 8 SLAVE4
+ SG_ START_CHANNEL : 0|5@1+ (1,0) [0|14] "" MASTER
+ SG_ VOLTAGE1 : 5|14@1+ (0.183116645,1500) [1500|4499.999995035] "mV" MASTER
+ SG_ VOLTAGE2 : 19|14@1+ (0.183116645,1500) [1500|4499.999995035] "mV" MASTER
+ SG_ VOLTAGE3 : 33|14@1+ (0.183116645,1500) [1500|4499.999995035] "mV" MASTER
+ SG_ VOLTAGE4 : 47|14@1+ (0.183116645,1500) [1500|4499.999995035] "mV" MASTER
+
+BO_ 114 SLAVE5_LOW_PRIORITY_TEMPERATURE: 8 SLAVE5
+ SG_ CHANNEL1 : 0|6@1+ (1,0) [0|56] "C" MASTER
+ SG_ VALUE1 : 6|12@1+ (0.0166666666666667,0) [0|68.25] "C" MASTER
+ SG_ CHANNEL2 : 18|6@1+ (1,0) [0|56] "C" MASTER
+ SG_ VALUE2 : 24|12@1+ (0.0166666666666667,0) [0|68.25] "C" MASTER
+
+BO_ 25 SLAVE5_HIGH_PRIORITY_TEMPERATURE: 8 SLAVE5
+ SG_ CHANNEL1 : 0|6@1+ (1,0) [0|56] "C" MASTER
+ SG_ VALUE1 : 6|12@1+ (0.0166666666666667,0) [0|68.25] "C" MASTER
+ SG_ CHANNEL2 : 18|6@1+ (1,0) [0|56] "C" MASTER
+ SG_ VALUE2 : 24|12@1+ (0.0166666666666667,0) [0|68.25] "C" MASTER
+
+BO_ 20 SLAVE5_HIGH_PRIORITY_VOLTAGE: 8 SLAVE5
+ SG_ START_CHANNEL : 0|5@1+ (1,0) [0|14] "" MASTER
+ SG_ VOLTAGE1 : 5|14@1+ (0.183116645,1500) [1500|4499.999995035] "mV" MASTER
+ SG_ VOLTAGE2 : 19|14@1+ (0.183116645,1500) [1500|4499.999995035] "mV" MASTER
+ SG_ VOLTAGE3 : 33|14@1+ (0.183116645,1500) [1500|4499.999995035] "mV" MASTER
+ SG_ VOLTAGE4 : 47|14@1+ (0.183116645,1500) [1500|4499.999995035] "mV" MASTER
+
+BO_ 109 SLAVE5_LOW_PRIORITY_VOLTAGE: 8 SLAVE5
+ SG_ START_CHANNEL : 0|5@1+ (1,0) [0|14] "" MASTER
+ SG_ VOLTAGE1 : 5|14@1+ (0.183116645,1500) [1500|4499.999995035] "mV" MASTER
+ SG_ VOLTAGE2 : 19|14@1+ (0.183116645,1500) [1500|4499.999995035] "mV" MASTER
+ SG_ VOLTAGE3 : 33|14@1+ (0.183116645,1500) [1500|4499.999995035] "mV" MASTER
+ SG_ VOLTAGE4 : 47|14@1+ (0.183116645,1500) [1500|4499.999995035] "mV" MASTER
+
+BO_ 300 ACCELERATION_PEDAL: 8 TCS
+ SG_ SENSOR1_RAW : 0|16@1+ (1,0) [0|65535] "" DEBUG
+ SG_ SENSOR2_RAW : 16|16@1+ (1,0) [0|65535] "" DEBUG
+ SG_ SENSOR1_PERCENT : 32|16@1+ (1,0) [0|65535] "" DEBUG
+ SG_ SENSOR2_PERCENT : 48|16@1+ (1,0) [0|65535] "" DEBUG
+
+BO_ 301 BRAKE_PEDAL: 8 TCS
+ SG_ SENSOR1_RAW : 0|16@1+ (1,0) [0|65535] "" DEBUG
+ SG_ SENSOR2_RAW : 16|16@1+ (1,0) [0|65535] "" DEBUG
+ SG_ SENSOR1_PERCENT : 32|16@1+ (1,0) [0|65535] "" DEBUG
+ SG_ SENSOR2_PERCENT : 48|16@1+ (1,0) [0|65535] "" DEBUG
+
+BO_ 302 TCS_COMMANDS: 2 TCS
+ SG_ BRAKE : 8|8@1+ (1,0) [0|1] "" DEBUG
+ SG_ TORQUE : 0|8@1+ (1,0) [0|100] "" DEBUG
+
+BO_ 304 SPEED: 2 TCS
+ SG_ VALUE : 0|16@1+ (1,0) [0|65535] "" DEBUG
+
+BO_ 64 TCS_STATUS: 1 TCS
+ SG_ DRIVE_STATE : 5|1@1+ (1,0) [0|1] "" DEBUG
+ SG_ BRAKE_STATE : 4|1@1+ (1,0) [0|1] "" DEBUG
+ SG_ READY_TO_DRIVE : 3|1@1+ (1,0) [0|1] "" DEBUG,DASH
+ SG_ AIRS_STATE : 2|1@1+ (1,0) [0|1] "" DEBUG
+ SG_ BRAKE_IMPLAUSIBILITY : 1|1@1- (1,0) [0|1] "" DEBUG
+ SG_ ACCEL_IMPLAUSIBILITY : 0|1@1- (1,0) [0|1] "" DEBUG
+
+BO_ 48 DRIVE_RX: 3 TCS
+ SG_ DRIVE_REGISTER M : 0|8@1+ (1,0) [0|255] "" DRIVE
+ SG_ SPEED_CMD     m49  : 8|16@1+ (1,0) [0|65535] "" DRIVE
+ SG_ READ_REGISTER m61  : 8|8@1+ (1,0) [0|255] "" DRIVE
+ SG_ READ_INTERVAL m61  : 16|8@1+ (1,0) [0|255] "" DRIVE
+ SG_ MODE          m81  : 8|16@1+ (1,0) [0|65535] "" DRIVE
+ SG_ TORQUE_SETPOI m144 : 8|16@1+ (1,0) [0|65535] "" DRIVE
+
+BO_ 49 DRIVE_TX: 5 DRIVE
+ SG_ DRIVE_REGISTER M : 0|8@1+ (1,0) [0|255] "" TCS
+ SG_ I_ACTUAL      m32  : 8|16@1+ (1,0) [0|65535] "" TCS
+ SG_ IQ_ACTUAL     m39  : 8|16@1+ (1,0) [0|65535] "" TCS
+ SG_ ID_ACTUAL     m40  : 8|16@1+ (1,0) [0|65535] "" TCS
+ SG_ SPEED_ACTUAL  m48  : 8|16@1+ (1,0) [0|65535] "" TCS
+ SG_ T_MOTOR       m73  : 8|16@1+ (1,0) [0|65535] "" TCS
+ SG_ T_IGBT        m74  : 8|16@1+ (1,0) [0|65535] "" TCS
+ SG_ T_AIR         m75  : 8|16@1+ (1,0) [0|65535] "" TCS
+ SG_ STATUS        m64  : 8|16@1+ (1,0) [0|65535] "" TCS
+ SG_ MODE          m81  : 8|16@1+ (1,0) [0|65535] "" TCS
+ SG_ SPEED_RPMMAX  m200 : 8|16@1+ (1,0) [0|65535] "" TCS
+
+BO_ 65 DASH_STATUS: 1 DASH
+ SG_ RTD_SWITCH : 0|1@1- (1,0) [0|1] "" TCS
+
+BO_ 1556 NLG5_ERR: 5 CHARGER
+ SG_ NLG5_W_SC_M : 32|1@0- (1,0) [0|1] ""  MASTER
+ SG_ NLG5_W_OD : 33|1@0- (1,0) [0|1] ""  MASTER
+ SG_ NLG5_W_CM_NA : 35|1@0- (1,0) [0|1] ""  MASTER
+ SG_ NLG5_W_PL_MV : 39|1@0- (1,0) [0|1] ""  MASTER
+ SG_ NLG5_W_PL_IT : 37|1@0- (1,0) [0|1] ""  MASTER
+ SG_ NLG5_W_PL_BV : 38|1@0- (1,0) [0|1] ""  MASTER
+ SG_ NLG5_W_C_VOR : 36|1@0- (1,0) [0|1] ""  MASTER
+ SG_ NLG5_E_WDT : 19|1@0- (1,0) [0|1] ""  MASTER
+ SG_ NLG5_E_T_TR : 11|1@0- (1,0) [0|1] ""  MASTER
+ SG_ NLG5_E_T_POW : 13|1@0- (1,0) [0|1] ""  MASTER
+ SG_ NLG5_E_T_EXT3 : 8|1@0- (1,0) [0|1] ""  MASTER
+ SG_ NLG5_E_T_EXT2 : 9|1@0- (1,0) [0|1] ""  MASTER
+ SG_ NLG5_E_T_EXT1 : 10|1@0- (1,0) [0|1] ""  MASTER
+ SG_ NLG5_E_T_DIO : 12|1@0- (1,0) [0|1] ""  MASTER
+ SG_ NLG5_E_T_C : 14|1@0- (1,0) [0|1] ""  MASTER
+ SG_ NLG5_E_SDT_CT : 26|1@0- (1,0) [0|1] ""  MASTER
+ SG_ NLG5_E_SDT_BV : 28|1@0- (1,0) [0|1] ""  MASTER
+ SG_ NLG5_E_SDT_BT : 29|1@0- (1,0) [0|1] ""  MASTER
+ SG_ NLG5_E_SDT_AH : 27|1@0- (1,0) [0|1] ""  MASTER
+ SG_ NLG5_E_SC : 4|1@0- (1,0) [0|1] ""  MASTER
+ SG_ NLG5_E_P_OM : 3|1@0- (1,0) [0|1] ""  MASTER
+ SG_ NLG5_E_P_MV : 2|1@0- (1,0) [0|1] ""  MASTER
+ SG_ NLG5_E_OOV : 7|1@0- (1,0) [0|1] ""  MASTER
+ SG_ NLG5_E_OF : 1|1@0- (1,0) [0|1] ""  MASTER
+ SG_ NLG5_E_NV_CRC : 22|1@0- (1,0) [0|1] ""  MASTER
+ SG_ NLG5_E_MOV_II : 6|1@0- (1,0) [0|1] ""  MASTER
+ SG_ NLG5_E_MOV_I : 5|1@0- (1,0) [0|1] ""  MASTER
+ SG_ NLG5_E_MF : 0|1@0- (1,0) [0|1] ""  MASTER
+ SG_ NLG5_E_INIT : 18|1@0- (1,0) [0|1] ""  MASTER
+ SG_ NLG5_E_F_CRC : 23|1@0- (1,0) [0|1] ""  MASTER
+ SG_ NLG5_E_ES_CRC : 21|1@0- (1,0) [0|1] ""  MASTER
+ SG_ NLG5_E_EP_CRC : 20|1@0- (1,0) [0|1] ""  MASTER
+ SG_ NLG5_E_C_TX : 31|1@0- (1,0) [0|1] ""  MASTER
+ SG_ NLG5_E_C_TO : 17|1@0- (1,0) [0|1] ""  MASTER
+ SG_ NLG5_E_C_RX : 30|1@0- (1,0) [0|1] ""  MASTER
+ SG_ NLG5_E_C_OFF : 16|1@0- (1,0) [0|1] ""  MASTER
+ SG_ NLG5_E_B_P : 15|1@0- (1,0) [0|1] ""  MASTER
+
+BO_ 1555 NLG5_TEMP: 8 CHARGER
+ SG_ NLG5_TMP_EXT3 : 55|16@0- (0.1,0) [-40|300] "°C"  MASTER
+ SG_ NLG5_TMP_EXT1 : 23|16@0- (0.1,0) [-40|300] "°C"  MASTER
+ SG_ NLG5_TEMP_EXT2 : 39|16@0- (0.1,0) [-40|300] "°C"  MASTER
+ SG_ NLG5_P_TMP : 7|16@0- (0.1,0) [-40|300] "°C"  MASTER
+
+BO_ 1554 NLG5_ACT_II: 8 CHARGER
+ SG_ NLG5_S_MC_M_PI : 23|8@0+ (0.1,0) [0|20] "A"  MASTER
+ SG_ NLG5_S_MC_M_CP : 7|16@0+ (0.1,0) [0|100] "A"  MASTER
+ SG_ NLG5_OC_BO : 55|16@0+ (0.01,0) [0|50] "A"  MASTER
+ SG_ NLG5_AHC_EXT : 39|16@0- (0.01,0) [-327.68|327.67] "Ah"  MASTER
+ SG_ NLG5_ABV : 31|8@0+ (0.1,0) [0|25] "V"  MASTER
+
+BO_ 1553 NLG5_ACT_I: 8 CHARGER
+ SG_ NLG5_OV_ACT : 39|16@0+ (0.1,0) [0|1000] "V"  MASTER
+ SG_ NLG5_OC_ACT : 55|16@0- (0.01,0) [0|150] "A"  MASTER
+ SG_ NLG5_MV_ACT : 23|16@0+ (0.1,0) [0|500] "V"  MASTER
+ SG_ NLG5_MC_ACT : 7|16@0+ (0.01,0) [0|50] "A"  MASTER
+
+BO_ 1552 NLG5_ST: 4 CHARGER
+ SG_ NLG5_S_AAC : 24|1@0- (1,0) [0|1] ""  MASTER
+ SG_ NLG5_S_WAR : 5|1@0- (1,0) [0|1] ""  MASTER
+ SG_ NLG5_S_UM_II : 1|1@0- (1,0) [0|1] ""  MASTER
+ SG_ NLG5_S_UM_I : 2|1@0- (1,0) [0|1] ""  MASTER
+ SG_ NLG5_S_HE : 7|1@0- (1,0) [0|1] ""  MASTER
+ SG_ NLG5_S_L_T_TR : 17|1@0- (1,0) [0|1] ""  MASTER
+ SG_ NLG5_S_L_T_POW : 19|1@0- (1,0) [0|1] ""  MASTER
+ SG_ NLG5_S_L_T_DIO : 18|1@0- (1,0) [0|1] ""  MASTER
+ SG_ NLG5_S_L_T_CPRIM : 20|1@0- (1,0) [0|1] ""  MASTER
+ SG_ NLG5_S_L_T_BATT : 16|1@0- (1,0) [0|1] ""  MASTER
+ SG_ NLG5_S_L_PMAX : 8|1@0- (1,0) [0|1] ""  MASTER
+ SG_ NLG5_S_L_PI : 10|1@0- (1,0) [0|1] ""  MASTER
+ SG_ NLG5_S_L_OV : 13|1@0- (1,0) [0|1] ""  MASTER
+ SG_ NLG5_S_L_OC_MAX : 22|1@0- (1,0) [0|1] ""  MASTER
+ SG_ NLG5_S_L_OC : 12|1@0- (1,0) [0|1] ""  MASTER
+ SG_ NLG5_S_L_MO_MAX : 21|1@0- (1,0) [0|1] ""  MASTER
+ SG_ NLG5_S_L_MC_MAX : 23|1@0- (1,0) [0|1] ""  MASTER
+ SG_ NLG5_S_L_MC : 11|1@0- (1,0) [0|1] ""  MASTER
+ SG_ NLG5_S_L_CP : 9|1@0- (1,0) [0|1] ""  MASTER
+ SG_ NLG5_S_FAN : 4|1@0- (1,0) [0|1] ""  MASTER
+ SG_ NLG5_S_EUM : 3|1@0- (1,0) [0|1] ""  MASTER
+ SG_ NLG5_S_ERR : 6|1@0- (1,0) [0|1] ""  MASTER
+ SG_ NLG5_S_CP_DT : 0|1@0- (1,0) [0|1] ""  MASTER
+ SG_ NLG5_S_BPD_II : 14|1@0- (1,0) [0|1] ""  MASTER
+ SG_ NLG5_S_BPD_I : 15|1@0- (1,0) [0|1] ""  MASTER
+
+BO_ 1560 NLG5_CTL: 7 MASTER
+ SG_ NLG5_C_MR : 4|1@0- (1,0) [0|1] ""  CHARGER
+ SG_ NLG5_OV_COM : 31|16@0+ (0.1,0) [0|1000] "V"  CHARGER
+ SG_ NLG5_MC_MAX : 15|16@0+ (0.1,0) [0|50] "A"  CHARGER
+ SG_ NLG5_C_C_EN : 7|1@0- (1,0) [0|1] ""  CHARGER
+ SG_ NLG5_OC_COM : 47|16@0+ (0.1,0) [0|150] "A"  CHARGER
+ SG_ NLG5_C_CP_V : 5|1@0- (1,0) [0|1] ""  CHARGER
+ SG_ NLG5_C_C_EL : 6|1@0- (1,0) [0|1] ""  CHARGER
+
+BO_ 207 MASTER_WARNINGS: 1 MASTER
+ SG_ LOW_VOLTAGE : 1|1@1+ (1,0) [0|1] "" DEBUG
+ SG_ LOW_TEMPERATURE : 3|1@1+ (1,0) [0|1] "" DEBUG
+ SG_ HIGH_VOLTAGE : 0|1@1+ (1,0) [0|1] "" DEBUG
+ SG_ HIGH_TEMPERATURE : 2|1@1+ (1,0) [0|1] "" DEBUG
+
+BO_ 206 MASTER_STATES: 1 MASTER
+ SG_ DCDC_ON : 4|1@1+ (1,0) [0|1] "" DEBUG
+ SG_ PUMP2_ACTIVATED : 3|1@1+ (1,0) [0|1] "" DEBUG
+ SG_ PUMP1_ACTIVATED : 2|1@1+ (1,0) [0|1] "" DEBUG
+ SG_ AIR_PLUS_CLOSED : 1|1@1+ (1,0) [0|1] "" DEBUG
+ SG_ AIR_MINUS_CLOSED : 0|1@1+ (1,0) [0|1] "" DEBUG
+
+BO_ 202 MAXIMUM_CELL_TEMPERATURE: 3 MASTER
+ SG_ MODULE : 0|3@1+ (1,0) [0|5] "" DEBUG
+ SG_ CHANNEL : 3|6@1+ (1,0) [0|56] "" DEBUG
+ SG_ VALUE : 9|12@1+ (0.0166666666666667,0) [0|68.25] "°C" DEBUG
+
+BO_ 203 MINIMUM_CELL_TEMPERATURE: 3 MASTER
+ SG_ MODULE : 0|3@1+ (1,0) [0|5] "" DEBUG
+ SG_ CHANNEL : 3|6@1+ (1,0) [0|56] "" DEBUG
+ SG_ VALUE : 9|12@1+ (0.0166666666666667,0) [0|68.25] "°C" DEBUG
+
+BO_ 200 MAXIMUM_CELL_VOLTAGE: 3 MASTER
+ SG_ MODULE : 0|3@1+ (1,0) [0|5] "" DEBUG
+ SG_ CHANNEL : 3|4@1+ (1,0) [0|14] "" DEBUG
+ SG_ VALUE : 8|14@1+ (0.183116645,1500) [1500|4499.999995035] "mV" DEBUG
+
+BO_ 201 MINIMUM_CELL_VOLTAGE: 3 MASTER
+ SG_ MODULE : 0|3@1+ (1,0) [0|5] "" DEBUG
+ SG_ CHANNEL : 3|4@1+ (1,0) [0|14] "" DEBUG
+ SG_ VALUE : 8|14@1+ (0.183116645,1500) [1500|4499.999995035] "mV" DEBUG
+
+BO_ 80 SLAVE_COMMAND_FAN_ON: 1 MASTER
+ SG_ SLAVE1 : 0|1@1+ (1,0) [0|1] "" SLAVE5
+ SG_ SLAVE2 : 1|1@1+ (1,0) [0|1] "" SLAVE4
+ SG_ SLAVE3 : 2|1@1+ (1,0) [0|1] "" SLAVE3
+ SG_ SLAVE4 : 3|1@1+ (1,0) [0|1] "" SLAVE2
+ SG_ SLAVE5 : 4|1@1+ (1,0) [0|1] "" SLAVE1
+
+CM_ BU_ SLAVE1 "BMS Slave #1 v4.0";
+CM_ BU_ SLAVE2 "BMS Slave #2 v4.0";
+CM_ BU_ SLAVE3 "BMS Slave #3 v4.0";
+CM_ BU_ SLAVE4 "BMS Slave #4 v4.0";
+CM_ BU_ SLAVE5 "BMS Slave #5 v4.0";
+CM_ BU_ MASTER "BMS Master v4.0";
+CM_ BU_ DRIVE "Unitek BAMOCAR D3";
+CM_ BU_ CHARGER "Brusa NLG5";
+
+CM_ SG_ 1556 NLG5_W_SC_M "Save-Charging-Mode reduces primary current to 3.95 A as long as one of the four internal temperature sensors indicates -18° C or less.";
+CM_ SG_ 1556 NLG5_W_OD "LED Output driver defective, LEDs can´t be controlled by NLG5 anymore. Charging is still possible.";
+CM_ SG_ 1556 NLG5_W_CM_NA "NLG5 Control message not active";
+CM_ SG_ 1556 NLG5_W_PL_MV "Output power limited by low mains voltage";
+CM_ SG_ 1556 NLG5_W_PL_IT "Output power limited by charger internal overtemperature";
+CM_ SG_ 1556 NLG5_W_PL_BV "Output power limited by low battery voltage";
+CM_ SG_ 1556 NLG5_W_C_VOR "Commanded value is out of specified range; max or min applicable value is assumed instead";
+CM_ SG_ 1556 NLG5_E_WDT "Internal Watchdog Timeout";
+CM_ SG_ 1556 NLG5_E_T_TR "Temperature sensor for transformer defective";
+CM_ SG_ 1556 NLG5_E_T_POW "Temperature sensor for prim power stage defective";
+CM_ SG_ 1556 NLG5_E_T_EXT3 "Ext. temperature sensor 3 defective (if enabled)";
+CM_ SG_ 1556 NLG5_E_T_EXT2 "Ext. temperature sensor 2 defective (if enabled)";
+CM_ SG_ 1556 NLG5_E_T_EXT1 "Ext. temperature sensor 1 defective (if enabled)";
+CM_ SG_ 1556 NLG5_E_T_DIO "Temperature sensor for diodes defective";
+CM_ SG_ 1556 NLG5_E_T_C "Temperature sensor for prim capacitor defective";
+CM_ SG_ 1556 NLG5_E_SDT_CT "Emergency Shutdown Threshold 'Charging Time' is exceeded; see ChargeStar help section 'protective features';  error can only be cleared by cycling power ON-OFF-ON";
+CM_ SG_ 1556 NLG5_E_SDT_BV "Emergency Shutdown Threshold 'Battery Voltage' is exceeded; see ChargeStar help section 'protective features';  error can only be cleared by cycling power ON-OFF-ON";
+CM_ SG_ 1556 NLG5_E_SDT_BT "Emergency Shutdown Threshold 'Battery Temperature' is exceeded; see ChargeStar help section 'protective features';  error can only be cleared by cycling power ON-OFF-ON";
+CM_ SG_ 1556 NLG5_E_SDT_AH "Emergency Shutdown Threshold 'Amp Hours' is exceeded; see ChargeStar help section 'protective features';  error can only be cleared by cycling power ON-OFF-ON";
+CM_ SG_ 1556 NLG5_E_SC "power stage short circuit condition detected; error can only be cleared by cycling power ON-OFF-ON";
+CM_ SG_ 1556 NLG5_E_P_OM "plausibility battery output voltage measurement wrong";
+CM_ SG_ 1556 NLG5_E_P_MV "plausibility mains voltage measurement wrong";
+CM_ SG_ 1556 NLG5_E_OOV "battery output overvoltage; error can only be cleared by cycling power ON-OFF-ON ";
+CM_ SG_ 1556 NLG5_E_OF "output fuse defective";
+CM_ SG_ 1556 NLG5_E_NV_CRC "NVSRAM check sum failure; contains most of the scaling & calibration values, CAN ID's and  charging profile etc.";
+CM_ SG_ 1556 NLG5_E_MOV_II "Mains overvoltage 2 detected";
+CM_ SG_ 1556 NLG5_E_MOV_I "Mains overvoltage 1 detected";
+CM_ SG_ 1556 NLG5_E_MF "Mains fuse defective";
+CM_ SG_ 1556 NLG5_E_INIT "Initialization error";
+CM_ SG_ 1556 NLG5_E_F_CRC "Flash memory checksum failure";
+CM_ SG_ 1556 NLG5_E_ES_CRC "Sys EEPROM checksum failure";
+CM_ SG_ 1556 NLG5_E_EP_CRC "Pow EEPROM checksum failure";
+CM_ SG_ 1556 NLG5_E_C_TX "CAN transmit buffer >127";
+CM_ SG_ 1556 NLG5_E_C_TO "CAN timeout, no control message received for >300ms";
+CM_ SG_ 1556 NLG5_E_C_RX "CAN receiver buffer >127";
+CM_ SG_ 1556 NLG5_E_C_OFF "CAN off, transmit buffer >255";
+CM_ SG_ 1556 NLG5_E_B_P "wrong battery polarity;  error can only be cleared by cycling power ON-OFF-ON";
+CM_ SG_ 1555 NLG5_TMP_EXT3 "Value of external battery temperature sensor #3 (if connected and enabled)";
+CM_ SG_ 1555 NLG5_TMP_EXT1 "Value of external battery temperature sensor #1 (if connected and enabled)";
+CM_ SG_ 1555 NLG5_TEMP_EXT2 "Value of external battery temperature sensor #2 (if connected and enabled)";
+CM_ SG_ 1555 NLG5_P_TMP "Power stage temperature";
+CM_ SG_ 1554 NLG5_S_MC_M_PI "Value of mains current limit, commanded by the 'power indicator' (PI) analog input signal";
+CM_ SG_ 1554 NLG5_S_MC_M_CP "Value of mains current limit, commanded by the control pilot (SAE J1772) signal";
+CM_ SG_ 1554 NLG5_OC_BO "output current of the booster (if one is present and active)";
+CM_ SG_ 1554 NLG5_AHC_EXT "Charge balance obtained via  Ext. Ah counter connected to DI1 / DI2";
+CM_ SG_ 1554 NLG5_ABV "Aux battery voltage";
+CM_ SG_ 1553 NLG5_OV_ACT "Actual battery output voltage";
+CM_ SG_ 1553 NLG5_OC_ACT "output current to the battery";
+CM_ SG_ 1553 NLG5_MV_ACT "Actual mains voltage";
+CM_ SG_ 1553 NLG5_MC_ACT "Actual mains current";
+CM_ SG_ 1552 NLG5_S_AAC "AUX 12 V Automatic Charging Active";
+CM_ SG_ 1552 NLG5_S_WAR "Warning condition on, i.e. charging power limited due to any limiting condition; red LED is blinking";
+CM_ SG_ 1552 NLG5_S_UM_II "US mains level 2 (240VAC / 60Hz) detected";
+CM_ SG_ 1552 NLG5_S_UM_I "US mains level 1 (120VAC / 60Hz) detected";
+CM_ SG_ 1552 NLG5_S_HE "Indicates if hardware enabled, i.e. a hi or lo signal is fed to the 'Power On' pin (pin3 of control connector)";
+CM_ SG_ 1552 NLG5_S_L_T_TR "Output power limited by temperature of transformer";
+CM_ SG_ 1552 NLG5_S_L_T_POW "Output power limited by temperature of power stage";
+CM_ SG_ 1552 NLG5_S_L_T_DIO "Output power limited by temperature of diodes";
+CM_ SG_ 1552 NLG5_S_L_T_CPRIM "Output power limited by temperature of primary capacitors";
+CM_ SG_ 1552 NLG5_S_L_T_BATT "Output power limited by battery temperature";
+CM_ SG_ 1552 NLG5_S_L_PMAX "Output power limited by maximum power capability of NLG5";
+CM_ SG_ 1552 NLG5_S_L_PI "Output power limited by analog input 'power indicator' (PI) limit";
+CM_ SG_ 1552 NLG5_S_L_OV "Output power limited by battery output voltage limit";
+CM_ SG_ 1552 NLG5_S_L_OC_MAX "Output power limited by maximum output current capability of NLG5";
+CM_ SG_ 1552 NLG5_S_L_OC "Output power limited by battery output current limit";
+CM_ SG_ 1552 NLG5_S_L_MO_MAX "Output power limited by maximum output voltage capability of NLG5";
+CM_ SG_ 1552 NLG5_S_L_MC_MAX "Output power limited by maximum mains current capability of NLG5";
+CM_ SG_ 1552 NLG5_S_L_MC "Output power limited by mains current limit";
+CM_ SG_ 1552 NLG5_S_L_CP "Output power limited by control pilot signal (SAE J1772)";
+CM_ SG_ 1552 NLG5_S_FAN "Charger cooling fan is active";
+CM_ SG_ 1552 NLG5_S_EUM "European mains input detected (230V, 50Hz)";
+CM_ SG_ 1552 NLG5_S_ERR "An error has been detected, red LED is ON, no power is output";
+CM_ SG_ 1552 NLG5_S_CP_DT "Control pilot signal (SAE J1772) detected ";
+CM_ SG_ 1552 NLG5_S_BPD_II "Bypass detection bit 2; 00: no bypass, 01: DC bypass detected, 10:AC bypass in phase, 11: AC bypass not in phase";
+CM_ SG_ 1552 NLG5_S_BPD_I "Bypass detection bit 1; 00: no bypass, 01: DC bypass detected, 10:AC bypass in phase, 11: AC bypass not in phase";
+CM_ SG_ 1560 NLG5_C_MR "Enables CP-State C to request mains voltage";
+CM_ SG_ 1560 NLG5_OV_COM "Desired voltage to be output to the battery. Must always contain a valid value in order to keep on charging.";
+CM_ SG_ 1560 NLG5_MC_MAX "Maximum current to be drawn from the mains outlet, usually 16A. Must always contain a valid value in order to keep on charging.";
+CM_ SG_ 1560 NLG5_C_C_EN "Must be ON to enable power stage of the charger";
+CM_ SG_ 1560 NLG5_OC_COM "Desired battery current. Must always contain a valid value in order to keep on charging.";
+CM_ SG_ 1560 NLG5_C_CP_V "special signal to tell a charging station equipped with the Control Pilot interface (SAE J1772) to switch on the facility's ventilation (in order to get rid of battery gases like hydrogen, e.g.)";
+CM_ SG_ 1560 NLG5_C_C_EL "cycle this value 0-1-0 to clear all latched charger errors ";
+
+BA_DEF_  "Bus Speed" STRING ;
+BA_DEF_  "DBName" STRING ;
+BA_DEF_  "BusType" STRING ;
+BA_DEF_ BU_  "NmStationAddress" HEX 0 4294967295;
+BA_DEF_ BO_  "GenMsgCycleTime" INT 0 0;
+BA_DEF_ BO_  "GenMsgSendType" ENUM  "Cyclic","not_used","not_used","not_used","not_used","Cyclic","not_used","IfActive","NoMsgSendType";
+BA_DEF_ SG_  "GenSigSendType" ENUM  "Cyclic","OnWrite","OnWriteWithRepetition","OnChange","OnChangeWithRepetition","IfActive","IfActiveWithRepetition","NoSigSendType";
+BA_DEF_ SG_  "GenSigInactiveValue" INT 0 0;
+BA_DEF_ SG_  "SystemSignalLongSymbol" STRING ;
+BA_DEF_DEF_  "Bus Speed" "500k";
+BA_DEF_DEF_  "DBName" "";
+BA_DEF_DEF_  "BusType" "CAN";
+BA_DEF_DEF_  "NmStationAddress" 0;
+BA_DEF_DEF_  "GenMsgCycleTime" 0;
+BA_DEF_DEF_  "GenMsgSendType" "NoMsgSendType";
+BA_DEF_DEF_  "GenSigSendType" "Cyclic";
+BA_DEF_DEF_  "GenSigInactiveValue" 0;
+BA_DEF_DEF_  "SystemSignalLongSymbol" "";
+
+VAL_ 48 sig_Drive_Reg_ID 50 "Speed command AR" 49 "Speed command BR" 235 "DC bus voltage" 48 "Speed value" 82 "State bits mask" 81 "Mode bits" 64 "State bits" ;
+VAL_ 49 sig_Drive_Reg_ID 50 "Speed command AR" 49 "Speed command BR" 235 "DC bus voltage" 48 "Speed value" 82 "State bits mask" 81 "Mode bits" 64 "State bits" ;
+
