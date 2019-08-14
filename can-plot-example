@@ -1,0 +1,24 @@
+#!/bin/bash
+
+set -e
+set -x
+
+BABELTRACE2="${BABELTRACE2:-babeltrace2}"
+
+DATABASES="[\"$PWD/can/database.dbc\"]"
+TRACES="[\"$PWD/can/test.data\"]"
+
+VOLTAGE_DATA="[\"timed\", \"Voltage\", \"BATTERY\", \"VOLTAGE\"]"
+CURRENT_DATA="[\"timed\", \"Current\", \"BATTERY\", \"CURRENT\"]"
+
+VOLTAGE_PLOT="[\"Battery Voltage\", \"Time (ms)\", \"Voltage (mV)\", [$VOLTAGE_DATA]]"
+CURRENT_PLOT="[\"Battery Current\", \"Time (ms)\", \"Current (A)\", [$CURRENT_DATA]]"
+
+"$BABELTRACE2"						\
+	--plugin-path=can/c				\
+	--plugin-path=plot				\
+	--component src.can.CANSource			\
+	--params="inputs=$TRACES,databases=$DATABASES"	\
+	--component sink.plot.PlotSink			\
+	--params="plots=[$VOLTAGE_PLOT, $CURRENT_PLOT]"
+
