@@ -5,10 +5,10 @@ import matplotlib.pyplot as plt
 
 class DataLogger(object):
     def __init__(self, name="Untitled"):
-            self.__name = name
+            self._name = name
 
     def get_name(self):
-        return self.__name
+        return self._name
 
     def get_x_data(self):
         raise NotImplementedError
@@ -27,25 +27,25 @@ class TimedDataLogger(DataLogger):
     def __init__(self, data, *args, **kwargs):
         super(TimedDataLogger, self).__init__(*args, **kwargs)
 
-        (self.__event, self.__field) = data
+        (self._event, self._field) = data
 
-        self.__timestamps = []
-        self.__values = []
+        self._timestamps = []
+        self._values = []
 
     def get_x_data(self):
-        return self.__timestamps
+        return self._timestamps
 
     def get_y_data(self):
-        return self.__values
+        return self._values
 
     def received_event(self, ts, event):
-        if event.name == self.__event and self.__field in event.payload_field:
-            value = event.payload_field[self.__field]
-            self.__add_data_point(ts, value)
+        if event.name == self._event and self._field in event.payload_field:
+            value = event.payload_field[self._field]
+            self._add_data_point(ts, value)
 
-    def __add_data_point(self, ts, value):
-        self.__timestamps.append(ts)
-        self.__values.append(value)
+    def _add_data_point(self, ts, value):
+        self._timestamps.append(ts)
+        self._values.append(value)
 
 class InterpolatedDataLogger(DataLogger):
     """
@@ -66,37 +66,37 @@ class InterpolatedDataLogger(DataLogger):
     def __init__(self, data1, data2, *args, **kwargs):
         super(InterpolatedDataLogger, self).__init__(*args, **kwargs)
 
-        (self.__event1, self.__field1) = data1
-        (self.__event2, self.__field2) = data2
+        (self._event1, self._field1) = data1
+        (self._event2, self._field2) = data2
 
-        self.__x_timestamps = []
-        self.__x_values = []
-        self.__x_needs_interpolation = dict()
-        self.__x_received_values = bintrees.AVLTree()
+        self._x_timestamps = []
+        self._x_values = []
+        self._x_needs_interpolation = dict()
+        self._x_received_values = bintrees.AVLTree()
 
-        self.__y_timestamps = []
-        self.__y_values = []
-        self.__y_needs_interpolation = dict()
-        self.__y_received_values = bintrees.AVLTree()
+        self._y_timestamps = []
+        self._y_values = []
+        self._y_needs_interpolation = dict()
+        self._y_received_values = bintrees.AVLTree()
 
     def get_x_data(self):
-        self.__interpolate_x_data()
-        return self.__x_values
+        self._interpolate_x_data()
+        return self._x_values
 
     def get_y_data(self):
-        self.__interpolate_y_data()
-        return self.__y_values
+        self._interpolate_y_data()
+        return self._y_values
 
     def received_event(self, ts, event):
-        if event.name == self.__event1 and self.__field1 in event.payload_field:
-            value = event.payload_field[self.__field1]
-            self.__add_x_data_point(ts, value)
+        if event.name == self._event1 and self._field1 in event.payload_field:
+            value = event.payload_field[self._field1]
+            self._add_x_data_point(ts, value)
 
-        if event.name == self.__event2 and self.__field2 in event.payload_field:
-            value = event.payload_field[self.__field2]
-            self.__add_y_data_point(ts, value)
+        if event.name == self._event2 and self._field2 in event.payload_field:
+            value = event.payload_field[self._field2]
+            self._add_y_data_point(ts, value)
 
-    def __interpolate(self, ts, received_values):
+    def _interpolate(self, ts, received_values):
         try:
             (after_ts, after_value) = received_values.ceiling_item(ts)
         except KeyError:
@@ -117,76 +117,76 @@ class InterpolatedDataLogger(DataLogger):
 
         return a*x + b
 
-    def __interpolate_x(self, ts):
-        return self.__interpolate(ts, self.__x_received_values)
+    def _interpolate_x(self, ts):
+        return self._interpolate(ts, self._x_received_values)
 
-    def __interpolate_y(self, ts):
-        return self.__interpolate(ts, self.__y_received_values)
+    def _interpolate_y(self, ts):
+        return self._interpolate(ts, self._y_received_values)
 
-    def __interpolate_x_data(self):
-        for (index, interpolated_ts) in self.__x_needs_interpolation.items():
-            interpolated_value = self.__interpolate_x(interpolated_ts)
-            self.__x_timestamps[index] = interpolated_ts
-            self.__x_values[index]     = interpolated_value
-        self.__x_needs_interpolation.clear()
+    def _interpolate_x_data(self):
+        for (index, interpolated_ts) in self._x_needs_interpolation.items():
+            interpolated_value = self._interpolate_x(interpolated_ts)
+            self._x_timestamps[index] = interpolated_ts
+            self._x_values[index]     = interpolated_value
+        self._x_needs_interpolation.clear()
 
-    def __interpolate_y_data(self):
-        for (index, interpolated_ts) in self.__y_needs_interpolation.items():
-            interpolated_value = self.__interpolate_y(interpolated_ts)
-            self.__y_timestamps[index] = interpolated_ts
-            self.__y_values[index]     = interpolated_value
-        self.__y_needs_interpolation.clear()
+    def _interpolate_y_data(self):
+        for (index, interpolated_ts) in self._y_needs_interpolation.items():
+            interpolated_value = self._interpolate_y(interpolated_ts)
+            self._y_timestamps[index] = interpolated_ts
+            self._y_values[index]     = interpolated_value
+        self._y_needs_interpolation.clear()
 
-    def __add_x_data_point(self, ts, value):
-        self.__x_timestamps.append(ts)
-        self.__x_values.append(value)
-        self.__x_received_values[ts] = value
+    def _add_x_data_point(self, ts, value):
+        self._x_timestamps.append(ts)
+        self._x_values.append(value)
+        self._x_received_values[ts] = value
 
-        self.__interpolate_x_data()
+        self._interpolate_x_data()
 
-        self.__y_timestamps.append(None)
-        self.__y_values.append(None)
-        self.__y_needs_interpolation[len(self.__y_timestamps)-1] = ts
+        self._y_timestamps.append(None)
+        self._y_values.append(None)
+        self._y_needs_interpolation[len(self._y_timestamps)-1] = ts
 
-    def __add_y_data_point(self, ts, value):
-        self.__y_timestamps.append(ts)
-        self.__y_values.append(value)
-        self.__y_received_values[ts] = value
+    def _add_y_data_point(self, ts, value):
+        self._y_timestamps.append(ts)
+        self._y_values.append(value)
+        self._y_received_values[ts] = value
 
-        self.__interpolate_y_data()
+        self._interpolate_y_data()
 
-        self.__x_timestamps.append(None)
-        self.__x_values.append(None)
-        self.__x_needs_interpolation[len(self.__y_timestamps)-1] = ts
+        self._x_timestamps.append(None)
+        self._x_values.append(None)
+        self._x_needs_interpolation[len(self._y_timestamps)-1] = ts
 
 class Plot(object):
     def __init__(self, loggers, title="Untitled", x_label="Untitled", y_label="Untitled"):
-        self.__loggers = loggers
-        self.__title = title
-        self.__x_label = x_label
-        self.__y_label = y_label
+        self._loggers = loggers
+        self._title = title
+        self._x_label = x_label
+        self._y_label = y_label
 
     def received_event(self, ts, event):
-        for logger in self.__loggers:
+        for logger in self._loggers:
             logger.received_event(ts, event)
 
     def plot(self):
         figure = plt.figure()
-        plt.title(self.__title)
-        plt.xlabel(self.__x_label, figure=figure)
-        plt.ylabel(self.__y_label, figure=figure)
+        plt.title(self._title)
+        plt.xlabel(self._x_label, figure=figure)
+        plt.ylabel(self._y_label, figure=figure)
 
-        for logger in self.__loggers:
+        for logger in self._loggers:
             x = logger.get_x_data()
             y = logger.get_y_data()
             line, = plt.plot(x, y, figure=figure)
             line.set_label(logger.get_name())
 
         figure.gca().legend()
-        plt.savefig(Plot.__format_filename(self.__title))
+        plt.savefig(Plot._format_filename(self._title))
 
     @staticmethod
-    def __format_filename(title):
+    def _format_filename(title):
         title = title.lower()
         title = "".join("-" if not c.isalnum() else c for c in title)
         title = "".join(["".join(j) if i != '-' else i for (i, j) in itertools.groupby(title)])
@@ -194,31 +194,31 @@ class Plot(object):
 
 @bt2.plugin_component_class
 class PlotSink(bt2._UserSinkComponent):
-    def __init__(self, params):
-        self.__plots = []
+    def __init__(self, params, obj):
+        self._plots = []
 
         for plot in params["plots"]:
-            self.__plots.append(PlotSink.create_plot(plot))
+            self._plots.append(PlotSink.create_plot(plot))
 
         self._add_input_port("in")
 
-    def _consume(self):
-        msg = next(self.__iter)
-        if isinstance(msg, bt2.message._PacketBeginningMessage):
+    def _user_consume(self):
+        msg = next(self._iter)
+        if isinstance(msg, bt2._PacketBeginningMessage):
             return
-        if isinstance(msg, bt2.message._PacketEndMessage):
+        if isinstance(msg, bt2._PacketEndMessage):
             return
-        if isinstance(msg, bt2.message._StreamBeginningMessage):
+        if isinstance(msg, bt2._StreamBeginningMessage):
             return
-        if isinstance(msg, bt2.message._StreamEndMessage):
-            { plot.plot() for plot in self.__plots }
+        if isinstance(msg, bt2._StreamEndMessage):
+            { plot.plot() for plot in self._plots }
             return
 
         ts = msg.default_clock_snapshot.value
-        { plot.received_event(ts, msg.event) for plot in self.__plots }
+        { plot.received_event(ts, msg.event) for plot in self._plots }
 
-    def _graph_is_configured(self):
-        self.__iter = self._input_ports["in"].create_message_iterator()
+    def _user_graph_is_configured(self):
+        self._iter = self._create_input_port_message_iterator(self._input_ports["in"])
 
     @staticmethod
     def create_plot(params):

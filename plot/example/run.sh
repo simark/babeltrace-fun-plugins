@@ -17,4 +17,3 @@ PLOT6="[\"Both 2\", \"x\", \"y\", [$DATA3, $DATA4]]"
 "$BABELTRACE2" --plugin-path=.. --component sink.plot.PlotSink 		\
 	--params="plots=[$PLOT1,$PLOT2,$PLOT3,$PLOT4,$PLOT5,$PLOT6]"	\
 	"$(pwd)/data"
-
