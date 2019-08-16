@@ -215,7 +215,8 @@ class PlotSink(bt2._UserSinkComponent):
             return
 
         ts = msg.default_clock_snapshot.value
-        { plot.received_event(ts, msg.event) for plot in self._plots }
+        for plot in self._plots:
+            plot.received_event(ts, msg.event)
 
     def _user_graph_is_configured(self):
         self._iter = self._create_input_port_message_iterator(self._input_ports["in"])
