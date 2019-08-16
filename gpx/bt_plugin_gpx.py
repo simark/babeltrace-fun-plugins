@@ -71,7 +71,7 @@ class GpxIter(bt2._UserMessageIterator):
 
 @bt2.plugin_component_class
 class GpxSource(bt2._UserSourceComponent, message_iterator_class=GpxIter):
-    def __init__(self, params):
+    def __init__(self, params, obj):
         print("GpxSource: Creating with params {}".format(params))
 
         if "inputs" not in params:
@@ -139,9 +139,8 @@ class GpxSource(bt2._UserSourceComponent, message_iterator_class=GpxIter):
             self._add_output_port("out", (trk, trace_class))
 
     @staticmethod
-    def _query(query_executor, obj, params, log_level):
-
-        if obj == "support-info":
+    def _user_query(query_executor, obj, params, log_level):
+        if obj == "babeltrace.support-info":
             if params["type"] == "file" and str(params["input"]).endswith(".gpx"):
                 w = 0.25
             else:
@@ -149,7 +148,7 @@ class GpxSource(bt2._UserSourceComponent, message_iterator_class=GpxIter):
 
             return {"weight": w}
         else:
-            raise NotImplementedError
+            raise bt2.UnknownObject
 
 
 bt2.register_plugin(
