@@ -117,9 +117,7 @@ class GpxSource(bt2._UserSourceComponent, message_iterator_class=GpxIter):
         trkpt_payload.append_member("lat", trace_class.create_real_field_class())
         trkpt_payload.append_member("lon", trace_class.create_real_field_class())
         trkpt_payload.append_member("ele", trace_class.create_real_field_class())
-        sc.create_event_class(
-            name="trkpt", payload_field_class=trkpt_payload
-        )
+        sc.create_event_class(name="trkpt", payload_field_class=trkpt_payload)
 
         print("GpxSource: Created trace class", trace_class)
         print("GpxSource:     with stream class trk", trace_class[0])
