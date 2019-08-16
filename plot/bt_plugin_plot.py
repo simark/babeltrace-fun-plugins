@@ -194,7 +194,7 @@ class Plot(object):
 
 @bt2.plugin_component_class
 class PlotSink(bt2._UserSinkComponent):
-    def __init__(self, params):
+    def __init__(self, params, obj):
         self._plots = []
 
         for plot in params["plots"]:
@@ -202,7 +202,7 @@ class PlotSink(bt2._UserSinkComponent):
 
         self._add_input_port("in")
 
-    def _consume(self):
+    def _user_consume(self):
         msg = next(self._iter)
         if isinstance(msg, bt2._PacketBeginningMessage):
             return
@@ -217,8 +217,8 @@ class PlotSink(bt2._UserSinkComponent):
         ts = msg.default_clock_snapshot.value
         { plot.received_event(ts, msg.event) for plot in self._plots }
 
-    def _graph_is_configured(self):
-        self._iter = self._input_ports["in"].create_message_iterator()
+    def _user_graph_is_configured(self):
+        self._iter = self._create_input_port_message_iterator(self._input_ports["in"])
 
     @staticmethod
     def create_plot(params):
@@ -267,4 +267,3 @@ bt2.register_plugin(
     license="GPL",
     version=(1, 0, 0),
 )
-
