@@ -3,9 +3,10 @@ import bintrees
 import itertools
 import matplotlib.pyplot as plt
 
+
 class DataLogger(object):
     def __init__(self, name="Untitled"):
-            self._name = name
+        self._name = name
 
     def get_name(self):
         return self._name
@@ -19,11 +20,13 @@ class DataLogger(object):
     def received_event(self, ts, event):
         raise NotImplementedError
 
+
 class TimedDataLogger(DataLogger):
     """
         This class allow a simple set of data of the form (ts, value) to be
         plotted.
     """
+
     def __init__(self, data, *args, **kwargs):
         super(TimedDataLogger, self).__init__(*args, **kwargs)
 
@@ -47,6 +50,7 @@ class TimedDataLogger(DataLogger):
         self._timestamps.append(ts)
         self._values.append(value)
 
+
 class InterpolatedDataLogger(DataLogger):
     """
         This class allow two set of data of the form (t1, v1) and (t2, v2) to
@@ -63,6 +67,7 @@ class InterpolatedDataLogger(DataLogger):
 
             tX_0 < tX_1 < ... < tX_N.
     """
+
     def __init__(self, data1, data2, *args, **kwargs):
         super(InterpolatedDataLogger, self).__init__(*args, **kwargs)
 
@@ -102,7 +107,7 @@ class InterpolatedDataLogger(DataLogger):
         except KeyError:
             (before_ts, before_value) = received_values.floor_item(ts)
             return before_value
-        
+
         try:
             (before_ts, before_value) = received_values.floor_item(ts)
         except KeyError:
@@ -111,11 +116,11 @@ class InterpolatedDataLogger(DataLogger):
         if before_ts == after_ts:
             return before_value
 
-        a = (ts - before_ts)
-        x = (after_value - before_value)/(after_ts - before_ts)
+        a = ts - before_ts
+        x = (after_value - before_value) / (after_ts - before_ts)
         b = before_value
 
-        return a*x + b
+        return a * x + b
 
     def _interpolate_x(self, ts):
         return self._interpolate(ts, self._x_received_values)
@@ -127,14 +132,14 @@ class InterpolatedDataLogger(DataLogger):
         for (index, interpolated_ts) in self._x_needs_interpolation.items():
             interpolated_value = self._interpolate_x(interpolated_ts)
             self._x_timestamps[index] = interpolated_ts
-            self._x_values[index]     = interpolated_value
+            self._x_values[index] = interpolated_value
         self._x_needs_interpolation.clear()
 
     def _interpolate_y_data(self):
         for (index, interpolated_ts) in self._y_needs_interpolation.items():
             interpolated_value = self._interpolate_y(interpolated_ts)
             self._y_timestamps[index] = interpolated_ts
-            self._y_values[index]     = interpolated_value
+            self._y_values[index] = interpolated_value
         self._y_needs_interpolation.clear()
 
     def _add_x_data_point(self, ts, value):
@@ -146,7 +151,7 @@ class InterpolatedDataLogger(DataLogger):
 
         self._y_timestamps.append(None)
         self._y_values.append(None)
-        self._y_needs_interpolation[len(self._y_timestamps)-1] = ts
+        self._y_needs_interpolation[len(self._y_timestamps) - 1] = ts
 
     def _add_y_data_point(self, ts, value):
         self._y_timestamps.append(ts)
@@ -157,10 +162,13 @@ class InterpolatedDataLogger(DataLogger):
 
         self._x_timestamps.append(None)
         self._x_values.append(None)
-        self._x_needs_interpolation[len(self._y_timestamps)-1] = ts
+        self._x_needs_interpolation[len(self._y_timestamps) - 1] = ts
+
 
 class Plot(object):
-    def __init__(self, loggers, title="Untitled", x_label="Untitled", y_label="Untitled"):
+    def __init__(
+        self, loggers, title="Untitled", x_label="Untitled", y_label="Untitled"
+    ):
         self._loggers = loggers
         self._title = title
         self._x_label = x_label
@@ -189,8 +197,11 @@ class Plot(object):
     def _format_filename(title):
         title = title.lower()
         title = "".join("-" if not c.isalnum() else c for c in title)
-        title = "".join(["".join(j) if i != '-' else i for (i, j) in itertools.groupby(title)])
+        title = "".join(
+            ["".join(j) if i != "-" else i for (i, j) in itertools.groupby(title)]
+        )
         return f"{title}.pdf"
+
 
 @bt2.plugin_component_class
 class PlotSink(bt2._UserSinkComponent):
@@ -211,7 +222,7 @@ class PlotSink(bt2._UserSinkComponent):
         if isinstance(msg, bt2._StreamBeginningMessage):
             return
         if isinstance(msg, bt2._StreamEndMessage):
-            { plot.plot() for plot in self._plots }
+            {plot.plot() for plot in self._plots}
             return
 
         ts = msg.default_clock_snapshot.value
@@ -225,9 +236,9 @@ class PlotSink(bt2._UserSinkComponent):
     def create_plot(params):
         loggers = []
         for logger in params[3]:
-            if logger[0] == 'timed':
+            if logger[0] == "timed":
                 logger = PlotSink.create_timed_logger(logger)
-            elif logger[0] == 'interpolated':
+            elif logger[0] == "interpolated":
                 logger = PlotSink.create_interpolated_logger(logger)
             else:
                 raise ValueError
@@ -238,27 +249,20 @@ class PlotSink(bt2._UserSinkComponent):
         x_label = str(params[1])
         y_label = str(params[2])
 
-        return Plot(
-            loggers,
-            title=title,
-            x_label=x_label,
-            y_label=y_label
-        )
+        return Plot(loggers, title=title, x_label=x_label, y_label=y_label)
 
     @staticmethod
     def create_timed_logger(params):
-        return TimedDataLogger(
-            (str(params[2]), str(params[3])),
-            name=str(params[1])
-        )
+        return TimedDataLogger((str(params[2]), str(params[3])), name=str(params[1]))
 
     @staticmethod
     def create_interpolated_logger(params):
         return InterpolatedDataLogger(
             (str(params[2]), str(params[3])),
             (str(params[4]), str(params[5])),
-            name=str(params[1])
+            name=str(params[1]),
         )
+
 
 bt2.register_plugin(
     module_name=__name__,
