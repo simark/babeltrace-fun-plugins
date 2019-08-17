@@ -1,6 +1,15 @@
 import bt2
 import cantools
 
+bt2.register_plugin(
+    module_name=__name__,
+    name="can",
+    description="CAN Format",
+    author="Gabriel-Andrew Pollo-Guilbert",
+    license="GPL",
+    version=(1, 0, 0),
+)
+
 
 class CANIterator(bt2._UserMessageIterator):
     def __init__(self, port):
@@ -255,13 +264,3 @@ class CANSource(bt2._UserSourceComponent, message_iterator_class=CANIterator):
         )
 
         return event_class
-
-
-bt2.register_plugin(
-    module_name=__name__,
-    name="can",
-    description="CAN Format",
-    author="Gabriel-Andrew Pollo-Guilbert",
-    license="GPL",
-    version=(1, 0, 0),
-)
