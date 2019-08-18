@@ -215,7 +215,7 @@ class CANSource(bt2._UserSourceComponent, message_iterator_class=CANIterator):
             raise ValueError(f"more than 1 multiplexer found in `{message.name}`")
 
         key = list(multiplexer.keys())[0]
-        for value in multiplexer[key].keys():
+        for value in sorted(multiplexer[key].keys()):
             field_class = trace_class.create_structure_field_class()
             field_class.append_member(key, trace_class.create_real_field_class())
             for signal in multiplexer[key][value]:
@@ -233,7 +233,11 @@ class CANSource(bt2._UserSourceComponent, message_iterator_class=CANIterator):
     @staticmethod
     def _create_message_class(trace_class, stream_class, message):
         field_class = trace_class.create_structure_field_class()
-        for signal in message.signals:
+
+        def _by_start_bit(sig):
+            return sig.start
+
+        for signal in sorted(message.signals, key=_by_start_bit):
             field_class.append_member(
                 signal.name, trace_class.create_real_field_class()
             )
