@@ -63,7 +63,7 @@ class CANIterator(bt2._UserMessageIterator):
         if len(self._init_msgs) > 0:
             return self._init_msgs.pop(0)
         else:
-            self._next = self._next_events
+            self._next = self._next_end
             return self._next()
 
     def _next_events(self):
@@ -115,11 +115,9 @@ class CANSource(bt2._UserSourceComponent, message_iterator_class=CANIterator):
         stream_class = trace_class.create_stream_class(
             name="can", default_clock_class=clock_class
         )
-        print(f"created trace class {trace_class}")
 
         event_class = CANSource._create_unknown_event_class(trace_class, stream_class)
         messages[None] = event_class
-        print(f"created event class 'UNKNOWN' at {event_class}")
 
         for path in databases:
             CANSource._create_database_event_classes(
@@ -153,10 +151,9 @@ class CANSource(bt2._UserSourceComponent, message_iterator_class=CANIterator):
             database = cantools.db.load_file(path)
         except FileNotFoundError as err:
             raise ValueError(f"database file `{path}` couldn't be read.") from err
-
+        
         for message in database.messages:
             if message.frame_id in messages:
-                print(f"{message.name} already present in another database")
                 continue
 
             multiplexed = False
@@ -171,13 +168,11 @@ class CANSource(bt2._UserSourceComponent, message_iterator_class=CANIterator):
                     trace_class, stream_class, message
                 )
                 messages[message.frame_id] = [database, event_classes, key]
-                print(f"created event class '{message.name}' at {event_class}")
             else:
                 event_class = CANSource._create_message_class(
                     trace_class, stream_class, message
                 )
                 messages[message.frame_id] = [database, event_class]
-                print(f"created event class '{message.name}' at {event_class}")
 
     @staticmethod
     def _create_unknown_event_class(trace_class, stream_class):
@@ -215,7 +210,7 @@ class CANSource(bt2._UserSourceComponent, message_iterator_class=CANIterator):
             raise ValueError(f"more than 1 multiplexer found in `{message.name}`")
 
         key = list(multiplexer.keys())[0]
-        for value in multiplexer[key].keys():
+        for value in sorted(multiplexer[key].keys()):
             field_class = trace_class.create_structure_field_class()
             field_class.append_member(key, trace_class.create_real_field_class())
             for signal in multiplexer[key][value]:
@@ -224,7 +219,7 @@ class CANSource(bt2._UserSourceComponent, message_iterator_class=CANIterator):
                 field_class.append_member(signal, trace_class.create_real_field_class())
 
             event_class = stream_class.create_event_class(
-                name=message.name, payload_field_class=field_class
+                name=message.name + str(value), payload_field_class=field_class
             )
             event_classes[value] = event_class
 
