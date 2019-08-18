@@ -8,8 +8,8 @@ CFLAGS = -g3 -O0 -Werror -Wall -fPIC
 LDFLAGS = \
 	  -L$(CANTOOLS_PREFIX)/lib \
 	  -lcandbc
-CC = gcc
-CXX = g++
+CC ?= gcc
+CXX ?= g++
 
 .PHONY: all
 all: babeltrace-plugin-can.so
