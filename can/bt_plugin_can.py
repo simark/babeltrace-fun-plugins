@@ -13,7 +13,9 @@ bt2.register_plugin(
 
 class CANIterator(bt2._UserMessageIterator):
     def __init__(self, port):
-        (self._events, self._trace_class, self._messages) = port.user_data
+        path, self._trace_class, self._messages = port.user_data
+        self._file = open(path, "rb")
+
         self._trace = self._trace_class()
 
         self._stream_class = self._trace_class[0]
@@ -21,7 +23,6 @@ class CANIterator(bt2._UserMessageIterator):
         self._init_msgs = [self._create_stream_beginning_message(self._stream)]
         self._end_msgs = [self._create_stream_end_message(self._stream)]
 
-        self._iter = iter(self._events)
         self._next = self._next_init
 
     def _create_decoded_event(self, timestamp, frame_id, bytedata):
@@ -65,18 +66,35 @@ class CANIterator(bt2._UserMessageIterator):
             return self._next()
 
     def _next_events(self):
-        try:
-            (timestamp, frame_id, bytedata) = next(self._iter)
+        # Custom binary format parsing.
+        #
+        # [bytes 0 -  3] timestamp
+        # [bytes 4 -  7] frame ID (standard or extended)
+        # [bytes 8 - 15] up to 64 bits of data
 
-            if frame_id in self._messages:
-                event_msg = self._create_decoded_event(timestamp, frame_id, bytedata)
-            else:
-                event_msg = self._create_unknown_event(timestamp, frame_id, bytedata)
-
-            return event_msg
-        except StopIteration:
+        msg = self._file.read(16)
+        if msg == b"":
             self._next = self._next_end
             return self._next()
+
+        timestamp = 0
+        timestamp += msg[0] << 0
+        timestamp += msg[1] << 8
+        timestamp += msg[2] << 16
+        timestamp += msg[3] << 32
+
+        frame_id = 0
+        frame_id += msg[4] << 0
+        frame_id += msg[5] << 8
+
+        data = msg[8:]
+
+        if frame_id in self._messages:
+            event_msg = self._create_decoded_event(timestamp, frame_id, data)
+        else:
+            event_msg = self._create_unknown_event(timestamp, frame_id, data)
+
+        return event_msg
 
     def _next_end(self):
         if len(self._end_msgs) > 0:
@@ -120,37 +138,7 @@ class CANSource(bt2._UserSourceComponent, message_iterator_class=CANIterator):
         return (trace_class, messages)
 
     def _create_port_for_can_trace(self, trace_class, messages, path):
-        try:
-            file = open(path, "rb")
-        except FileNotFoundError as err:
-            raise ValueError(f"couldn't read {path}") from err
-
-        events = []
-        while True:
-            # Custom binary format parsing.
-            #
-            # [bytes 0 -  3] timestamp
-            # [bytes 4 -  7] frame ID (standard or extended)
-            # [bytes 8 - 15] up to 64 bits of data
-
-            msg = file.read(16)
-            if msg == b"":
-                break
-
-            timestamp = 0
-            timestamp += msg[0] << 0
-            timestamp += msg[1] << 8
-            timestamp += msg[2] << 16
-            timestamp += msg[3] << 32
-
-            frame_id = 0
-            frame_id += msg[4] << 0
-            frame_id += msg[5] << 8
-
-            data = msg[8:]
-
-            events.append((timestamp, frame_id, data))
-        self._add_output_port(path, (events, trace_class, messages))
+        self._add_output_port(path, (path, trace_class, messages))
 
     @staticmethod
     def _get_param_list(params, key):
