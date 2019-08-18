@@ -13,13 +13,13 @@ bt2.register_plugin(
 
 class CANIterator(bt2._UserMessageIterator):
     def __init__(self, port):
-        path, self._trace_class, self._messages = port.user_data
+        path, trace_class, self._messages = port.user_data
         self._file = open(path, "rb")
 
-        self._trace = self._trace_class()
+        trace = trace_class()
 
-        self._stream_class = self._trace_class[0]
-        self._stream = self._trace.create_stream(self._stream_class)
+        stream_class = trace_class[0]
+        self._stream = trace.create_stream(stream_class)
         self._init_msgs = [self._create_stream_beginning_message(self._stream)]
         self._end_msgs = [self._create_stream_end_message(self._stream)]
 
