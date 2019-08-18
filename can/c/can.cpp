@@ -254,6 +254,9 @@ can_iterator_create_event_message(
 				uint64_t bitval = read_signal_value(sig, payload_bytes);
 				double val = bitval;
 
+				val *= sig->scale;
+				val += sig->offset;
+
 				bt_field *member = bt_field_structure_borrow_member_field_by_name(payload, sig->name);
 				assert(member);
 
@@ -264,6 +267,9 @@ can_iterator_create_event_message(
 			for (signal_t *sig : muxed_signals) {
 				uint64_t bitval = read_signal_value(sig, payload_bytes);
 				double val = bitval;
+
+				val *= sig->scale;
+				val += sig->offset;
 
 				bt_field *member = bt_field_structure_borrow_member_field_by_name(payload, sig->name);
 				assert(member);
@@ -287,6 +293,9 @@ can_iterator_create_event_message(
 			for (signal_t *sig : can_msg.non_multiplexed_signals) {
 				uint64_t bitval = read_signal_value(sig, payload_bytes);
 				double val = bitval;
+
+				val *= sig->scale;
+				val += sig->offset;
 
 				bt_field *member = bt_field_structure_borrow_member_field_by_name(payload, sig->name);
 				assert(member);
