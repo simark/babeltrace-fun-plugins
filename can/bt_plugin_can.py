@@ -1,5 +1,6 @@
 import bt2
 import cantools
+import struct
 
 bt2.register_plugin(
     module_name=__name__,
@@ -77,17 +78,7 @@ class CANIterator(bt2._UserMessageIterator):
             self._next = self._next_end
             return self._next()
 
-        timestamp = 0
-        timestamp += msg[0] << 0
-        timestamp += msg[1] << 8
-        timestamp += msg[2] << 16
-        timestamp += msg[3] << 32
-
-        frame_id = 0
-        frame_id += msg[4] << 0
-        frame_id += msg[5] << 8
-
-        data = msg[8:]
+        timestamp, frame_id, data = struct.unpack("<ii8s", msg)
 
         if frame_id in self._messages:
             event_msg = self._create_decoded_event(timestamp, frame_id, data)
