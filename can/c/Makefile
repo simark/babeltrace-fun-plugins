@@ -4,7 +4,7 @@ CPPFLAGS = \
 	$(shell pkg-config --cflags babeltrace2) \
 	-I$(CANTOOLS_PREFIX)/include
 
-CFLAGS = -g3 -O0 -Werror -Wall -fPIC
+CFLAGS = -g3 -O0 -Werror -Wall -fPIC -std=c++11
 LDFLAGS = \
 	  -L$(CANTOOLS_PREFIX)/lib \
 	  -lcandbc

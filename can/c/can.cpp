@@ -140,7 +140,7 @@ can_iter_init(bt_self_message_iterator *message_iterator,
 	bt_self_component_port *port =
 		bt_self_component_port_output_as_self_component_port(port_output);
 	can_port_data *port_data = (can_port_data *) bt_self_component_port_get_data(port);
-	std::unique_ptr<can_iter_data> iter_data = std::make_unique<can_iter_data>(port_data);
+	std::unique_ptr<can_iter_data> iter_data(new can_iter_data(port_data));
 
 	const char *trace_path = port_data->trace_path.c_str();
 	iter_data->trace_file = fopen_unique(trace_path, "rb");
@@ -459,7 +459,7 @@ can_source_create_ports_from_inputs(
 		}
 
 		const char *path = bt_value_string_get(input_value);
-		std::unique_ptr<can_port_data> port_data = std::make_unique<can_port_data>(source_data, path);
+		std::unique_ptr<can_port_data> port_data(new can_port_data(source_data, path));
 
 		bt_self_component_add_port_status add_port_status =
 			bt_self_component_source_add_output_port(
@@ -795,7 +795,7 @@ can_source_init (bt_self_component_source *self_component_source,
 		return BT_COMPONENT_CLASS_INIT_METHOD_STATUS_ERROR;
 	}
 
-	std::unique_ptr<can_source_data> source_data = std::make_unique<can_source_data>();
+	std::unique_ptr<can_source_data> source_data(new can_source_data);
 
 	status = can_source_create_ports_from_inputs(
 		self_component_source, params, source_data.get());
