@@ -12,6 +12,14 @@ bt2.register_plugin(
 )
 
 
+def log_info(cur_log_level):
+    return cur_log_level <= bt2.LoggingLevel.INFO
+
+
+def print_info(text):
+    print("INFO: {}".format(text))
+
+
 class CANIterator(bt2._UserMessageIterator):
     def __init__(self, port):
         path, trace_class, self._messages = port.user_data
@@ -115,14 +123,18 @@ class CANSource(bt2._UserSourceComponent, message_iterator_class=CANIterator):
         stream_class = trace_class.create_stream_class(
             name="can", default_clock_class=clock_class
         )
-        print(f"created trace class {trace_class}")
+
+        if log_info(self.logging_level):
+            print_info(f"created trace class {trace_class}")
 
         event_class = CANSource._create_unknown_event_class(trace_class, stream_class)
         messages[None] = event_class
-        print(f"created event class 'UNKNOWN' at {event_class}")
+
+        if log_info(self.logging_level):
+            print_info(f"created event class 'UNKNOWN' at {event_class}")
 
         for path in databases:
-            CANSource._create_database_event_classes(
+            self._create_database_event_classes(
                 trace_class, stream_class, str(path), messages
             )
 
@@ -147,8 +159,7 @@ class CANSource(bt2._UserSourceComponent, message_iterator_class=CANIterator):
 
         return param
 
-    @staticmethod
-    def _create_database_event_classes(trace_class, stream_class, path, messages):
+    def _create_database_event_classes(self, trace_class, stream_class, path, messages):
         try:
             database = cantools.db.load_file(path)
         except FileNotFoundError as err:
@@ -156,7 +167,9 @@ class CANSource(bt2._UserSourceComponent, message_iterator_class=CANIterator):
 
         for message in database.messages:
             if message.frame_id in messages:
-                print(f"{message.name} already present in another database")
+                if log_info(self.logging_level):
+                    print_info(f"{message.name} already present in another database")
+
                 continue
 
             multiplexed = False
@@ -171,13 +184,15 @@ class CANSource(bt2._UserSourceComponent, message_iterator_class=CANIterator):
                     trace_class, stream_class, message
                 )
                 messages[message.frame_id] = [database, event_classes, key]
-                print(f"created event class '{message.name}' at {event_class}")
+                if log_info(self.logging_level):
+                    print_info(f"created event class '{message.name}' at {event_class}")
             else:
                 event_class = CANSource._create_message_class(
                     trace_class, stream_class, message
                 )
                 messages[message.frame_id] = [database, event_class]
-                print(f"created event class '{message.name}' at {event_class}")
+                if log_info(self.logging_level):
+                    print_info(f"created event class '{message.name}' at {event_class}")
 
     @staticmethod
     def _create_unknown_event_class(trace_class, stream_class):
