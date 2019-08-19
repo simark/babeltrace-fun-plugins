@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# run the script from its directory
+cd $(dirname $0)
+
+# example code
 BABELTRACE2="${BABELTRACE2:-babeltrace2}"
 
 DATA1="[\"timed\", \"Data 1\", \"math:cos\", \"value\"]"
