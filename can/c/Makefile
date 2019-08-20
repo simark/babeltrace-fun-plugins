@@ -14,15 +14,12 @@ CXX ?= g++
 .PHONY: all
 all: babeltrace-plugin-can.so
 
-babeltrace-plugin-can.so: can.o bitfield.o
+babeltrace-plugin-can.so: can.o
 	$(CXX) -o $@ $^ -shared $(LDFLAGS)
 
 can.o: can.cpp
 	$(CXX) -c $< $(CPPFLAGS) $(CFLAGS)
 
-bitfield.o: bitfield.c
-	$(CC) -c $< $(CPPFLAGS $(CFLAGS)
-
 .PHONY: clean
 clean:
-	rm -f babeltrace-plugin-can.so can.o bitfield.o
+	rm -f babeltrace-plugin-can.so can.o

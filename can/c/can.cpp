@@ -197,11 +197,13 @@ can_iterator_next_starting(bt_self_message_iterator *message_iterator,
 	return BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_OK;
 }
 
-extern "C" uint64_t bt_bitfield_read_le_wrapper(const uint8_t *ptr, int start, int length);
-
 static uint64_t
 read_signal_value(const signal_t *sig, const uint8_t *data) {
-	return bt_bitfield_read_le_wrapper(data, sig->bit_start, sig->bit_len);
+	uint64_t val;
+
+	bt_bitfield_read_le(data, uint8_t, sig->bit_start, sig->bit_len, &val);
+
+	return val;
 }
 
 static bt_component_class_message_iterator_next_method_status
