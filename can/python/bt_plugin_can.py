@@ -21,7 +21,7 @@ def print_info(text):
 
 
 class CANIterator(bt2._UserMessageIterator):
-    def __init__(self, port):
+    def __init__(self, config, port):
         path, trace_class, self._messages = port.user_data
         self._file = open(path, "rb")
 
@@ -107,7 +107,7 @@ class CANIterator(bt2._UserMessageIterator):
 
 @bt2.plugin_component_class
 class CANSource(bt2._UserSourceComponent, message_iterator_class=CANIterator):
-    def __init__(self, params, obj):
+    def __init__(self, config, params, obj):
         inputs = CANSource._get_param_list(params, "inputs")
         databases = CANSource._get_param_list(params, "databases")
 
@@ -149,7 +149,7 @@ class CANSource(bt2._UserSourceComponent, message_iterator_class=CANIterator):
             raise ValueError(f"missing `{key}` parameter")
         param = params[key]
 
-        if type(param) != bt2.ArrayValue:
+        if type(param) != bt2._ArrayValueConst:
             raise TypeError(
                 f"expecting `{key}` parameter to be a list, got a {type(param)}"
             )
@@ -197,10 +197,12 @@ class CANSource(bt2._UserSourceComponent, message_iterator_class=CANIterator):
     @staticmethod
     def _create_unknown_event_class(trace_class, stream_class):
         field_class = trace_class.create_structure_field_class()
-        field_class.append_member("id", trace_class.create_real_field_class())
+        field_class.append_member(
+            "id", trace_class.create_double_precision_real_field_class()
+        )
         for i in range(8):
             field_class.append_member(
-                f"byte {i}", trace_class.create_real_field_class()
+                f"byte {i}", trace_class.create_double_precision_real_field_class()
             )
 
         event_class = stream_class.create_event_class(
@@ -232,11 +234,17 @@ class CANSource(bt2._UserSourceComponent, message_iterator_class=CANIterator):
         key = list(multiplexer.keys())[0]
         for value in sorted(multiplexer[key].keys()):
             field_class = trace_class.create_structure_field_class()
-            field_class.append_member(key, trace_class.create_real_field_class())
+            field_class.append_member(
+                key, trace_class.create_double_precision_real_field_class()
+            )
             for signal in multiplexer[key][value]:
-                field_class.append_member(signal, trace_class.create_real_field_class())
+                field_class.append_member(
+                    signal, trace_class.create_double_precision_real_field_class()
+                )
             for signal in signals:
-                field_class.append_member(signal, trace_class.create_real_field_class())
+                field_class.append_member(
+                    signal, trace_class.create_double_precision_real_field_class()
+                )
 
             event_class = stream_class.create_event_class(
                 name=message.name, payload_field_class=field_class
@@ -254,7 +262,7 @@ class CANSource(bt2._UserSourceComponent, message_iterator_class=CANIterator):
 
         for signal in sorted(message.signals, key=_by_start_bit):
             field_class.append_member(
-                signal.name, trace_class.create_real_field_class()
+                signal.name, trace_class.create_double_precision_real_field_class()
             )
 
         event_class = stream_class.create_event_class(

@@ -205,7 +205,7 @@ class Plot(object):
 
 @bt2.plugin_component_class
 class PlotSink(bt2._UserSinkComponent):
-    def __init__(self, params, obj):
+    def __init__(self, config, params, obj):
         self._plots = []
 
         for plot in params["plots"]:
@@ -215,13 +215,14 @@ class PlotSink(bt2._UserSinkComponent):
 
     def _user_consume(self):
         msg = next(self._iter)
-        if isinstance(msg, bt2._PacketBeginningMessage):
+        if type(msg) in [
+            bt2._PacketBeginningMessageConst,
+            bt2._PacketEndMessageConst,
+            bt2._StreamBeginningMessageConst,
+        ]:
             return
-        if isinstance(msg, bt2._PacketEndMessage):
-            return
-        if isinstance(msg, bt2._StreamBeginningMessage):
-            return
-        if isinstance(msg, bt2._StreamEndMessage):
+
+        if type(msg) is bt2._StreamEndMessageConst:
             {plot.plot() for plot in self._plots}
             return
 

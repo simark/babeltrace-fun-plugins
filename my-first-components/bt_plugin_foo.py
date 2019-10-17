@@ -4,7 +4,7 @@ bt2.register_plugin(__name__, "demo")
 
 
 class MyFirstSourceIter(bt2._UserMessageIterator):
-    def __init__(self, output_port):
+    def __init__(self, config, output_port):
         ec = output_port.user_data
         sc = ec.stream_class
         tc = sc.trace_class
@@ -30,7 +30,7 @@ class MyFirstSourceIter(bt2._UserMessageIterator):
 
 @bt2.plugin_component_class
 class MyFirstSource(bt2._UserSourceComponent, message_iterator_class=MyFirstSourceIter):
-    def __init__(self, params, obj):
+    def __init__(self, config, params, obj):
         tc = self._create_trace_class()
         cc = self._create_clock_class()
         sc = tc.create_stream_class(default_clock_class=cc)
@@ -41,7 +41,7 @@ class MyFirstSource(bt2._UserSourceComponent, message_iterator_class=MyFirstSour
 
 @bt2.plugin_component_class
 class MyFirstSink(bt2._UserSinkComponent):
-    def __init__(self, params, obj):
+    def __init__(self, config, params, obj):
         self._port = self._add_input_port("some-name")
 
     def _user_graph_is_configured(self):
@@ -51,13 +51,13 @@ class MyFirstSink(bt2._UserSinkComponent):
         # Consume one message and print it.
         msg = next(self._it)
 
-        if type(msg) is bt2._StreamBeginningMessage:
+        if type(msg) is bt2._StreamBeginningMessageConst:
             print("Stream beginning")
-        elif type(msg) is bt2._EventMessage:
+        elif type(msg) is bt2._EventMessageConst:
             ts = msg.default_clock_snapshot.value
             name = msg.event.name
             print("event {}, timestamp {}".format(name, ts))
-        elif type(msg) is bt2._StreamEndMessage:
+        elif type(msg) is bt2._StreamEndMessageConst:
             print("Stream end")
         else:
             raise RuntimeError("Unhandled message type", type(msg))

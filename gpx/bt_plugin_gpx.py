@@ -5,7 +5,7 @@ from datetime import datetime
 
 
 class GpxIter(bt2._UserMessageIterator):
-    def __init__(self, port):
+    def __init__(self, config, port):
         print("GpxIter: Creating for port {}".format(port))
         self._trk_elem, self._trace_class = port.user_data
 
@@ -71,7 +71,7 @@ class GpxIter(bt2._UserMessageIterator):
 
 @bt2.plugin_component_class
 class GpxSource(bt2._UserSourceComponent, message_iterator_class=GpxIter):
-    def __init__(self, params, obj):
+    def __init__(self, config, params, obj):
         print("GpxSource: Creating with params {}".format(params))
 
         if "inputs" not in params:
@@ -79,7 +79,7 @@ class GpxSource(bt2._UserSourceComponent, message_iterator_class=GpxIter):
 
         inputs = params["inputs"]
 
-        if type(inputs) != bt2.ArrayValue:
+        if type(inputs) != bt2._ArrayValueConst:
             raise TypeError(
                 "GpxSource: expecting `inputs` parameter to be a list, got a {}".format(
                     type(inputs)
@@ -93,7 +93,7 @@ class GpxSource(bt2._UserSourceComponent, message_iterator_class=GpxIter):
                 )
             )
 
-        if type(inputs[0]) != bt2.StringValue:
+        if type(inputs[0]) != bt2._StringValueConst:
             raise TypeError(
                 "GpxSource: expecting `inputs[0]` parameter to be a string, got a {}".format(
                     type(inputs[0])
@@ -114,9 +114,15 @@ class GpxSource(bt2._UserSourceComponent, message_iterator_class=GpxIter):
 
         # 'trkpt' event
         trkpt_payload = trace_class.create_structure_field_class()
-        trkpt_payload.append_member("lat", trace_class.create_real_field_class())
-        trkpt_payload.append_member("lon", trace_class.create_real_field_class())
-        trkpt_payload.append_member("ele", trace_class.create_real_field_class())
+        trkpt_payload.append_member(
+            "lat", trace_class.create_double_precision_real_field_class()
+        )
+        trkpt_payload.append_member(
+            "lon", trace_class.create_double_precision_real_field_class()
+        )
+        trkpt_payload.append_member(
+            "ele", trace_class.create_double_precision_real_field_class()
+        )
         sc.create_event_class(name="trkpt", payload_field_class=trkpt_payload)
 
         print("GpxSource: Created trace class", trace_class)

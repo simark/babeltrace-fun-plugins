@@ -132,8 +132,9 @@ struct can_source_data {
 	bt_event_class_ref unknown_event_class;
 };
 
-static bt_component_class_message_iterator_init_method_status
+static bt_component_class_message_iterator_initialize_method_status
 can_iter_init(bt_self_message_iterator *message_iterator,
+		bt_self_message_iterator_configuration *config,
 		bt_self_component_source *self_component,
 		bt_self_component_port_output *port_output)
 {
@@ -147,26 +148,26 @@ can_iter_init(bt_self_message_iterator *message_iterator,
 	if (!iter_data->trace_file) {
 		BT_CURRENT_THREAD_ERROR_APPEND_CAUSE_FROM_MESSAGE_ITERATOR(
 			message_iterator, "unable to open file `%s` :(", trace_path);
-		return BT_COMPONENT_CLASS_MESSAGE_ITERATOR_INIT_METHOD_STATUS_ERROR;
+		return BT_COMPONENT_CLASS_MESSAGE_ITERATOR_INITIALIZE_METHOD_STATUS_ERROR;
 	}
 
 	iter_data->trace.reset(bt_trace_create(iter_data->port_data->source_data->trace_class.get()));
 	if (!iter_data->trace) {
 		BT_CURRENT_THREAD_ERROR_APPEND_CAUSE_FROM_MESSAGE_ITERATOR(
 			message_iterator, "failed to create trace :(", trace_path);
-		return BT_COMPONENT_CLASS_MESSAGE_ITERATOR_INIT_METHOD_STATUS_MEMORY_ERROR;
+		return BT_COMPONENT_CLASS_MESSAGE_ITERATOR_INITIALIZE_METHOD_STATUS_MEMORY_ERROR;
 	}
 
 	iter_data->stream.reset(bt_stream_create(iter_data->port_data->source_data->stream_class.get(), iter_data->trace.get()));
 	if (!iter_data->stream) {
 		BT_CURRENT_THREAD_ERROR_APPEND_CAUSE_FROM_MESSAGE_ITERATOR(
 			message_iterator, "failed to create stream :(", trace_path);
-		return BT_COMPONENT_CLASS_MESSAGE_ITERATOR_INIT_METHOD_STATUS_MEMORY_ERROR;
+		return BT_COMPONENT_CLASS_MESSAGE_ITERATOR_INITIALIZE_METHOD_STATUS_MEMORY_ERROR;
 	}
 
 	bt_self_message_iterator_set_data(message_iterator, iter_data.release());
 
-	return BT_COMPONENT_CLASS_MESSAGE_ITERATOR_INIT_METHOD_STATUS_OK;
+	return BT_COMPONENT_CLASS_MESSAGE_ITERATOR_INITIALIZE_METHOD_STATUS_OK;
 }
 
 static bt_component_class_message_iterator_next_method_status
@@ -262,7 +263,7 @@ can_iterator_create_event_message(
 				bt_field *member = bt_field_structure_borrow_member_field_by_name(payload, sig->name);
 				assert(member);
 
-				bt_field_real_set_value(member, val);
+				bt_field_real_double_precision_set_value(member, val);
 			}
 
 			// Set all non-multiplexed values.
@@ -276,7 +277,7 @@ can_iterator_create_event_message(
 				bt_field *member = bt_field_structure_borrow_member_field_by_name(payload, sig->name);
 				assert(member);
 
-				bt_field_real_set_value(member, val);
+				bt_field_real_double_precision_set_value(member, val);
 			}
 		} else {
 			auto ec_it = can_msg.event_classes.find(0);
@@ -302,7 +303,7 @@ can_iterator_create_event_message(
 				bt_field *member = bt_field_structure_borrow_member_field_by_name(payload, sig->name);
 				assert(member);
 
-				bt_field_real_set_value(member, val);
+				bt_field_real_double_precision_set_value(member, val);
 			}
 		}
 	} else {
@@ -322,7 +323,7 @@ can_iterator_create_event_message(
 
 		for (int i = 0; i < 9; i++) {
 			bt_field *f = bt_field_structure_borrow_member_field_by_index(payload, i);
-			bt_field_real_set_value(f, 0);
+			bt_field_real_double_precision_set_value(f, 0);
 		}
 	}
 
@@ -427,7 +428,7 @@ can_iterator_next(bt_self_message_iterator *message_iterator,
 	}
 }
 
-static bt_component_class_init_method_status
+static bt_component_class_initialize_method_status
 can_source_create_ports_from_inputs(
 		bt_self_component_source *self_component_source,
 		const bt_value *params,
@@ -441,13 +442,13 @@ can_source_create_ports_from_inputs(
 	if (!inputs_value) {
 		BT_CURRENT_THREAD_ERROR_APPEND_CAUSE_FROM_COMPONENT(self_component,
         		"missing `inputs` params entry :(");
-		return BT_COMPONENT_CLASS_INIT_METHOD_STATUS_ERROR;
+		return BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_ERROR;
 	}
 
 	if (bt_value_get_type(inputs_value) != BT_VALUE_TYPE_ARRAY) {
 		BT_CURRENT_THREAD_ERROR_APPEND_CAUSE_FROM_COMPONENT(self_component,
         		"`inputs` param is not an array :(");
-		return BT_COMPONENT_CLASS_INIT_METHOD_STATUS_ERROR;
+		return BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_ERROR;
 	}
 
 	for (uint64_t inputs_i = 0; inputs_i < bt_value_array_get_length(inputs_value); inputs_i++) {
@@ -457,7 +458,7 @@ can_source_create_ports_from_inputs(
 		if (bt_value_get_type(input_value) != BT_VALUE_TYPE_STRING) {
 			BT_CURRENT_THREAD_ERROR_APPEND_CAUSE_FROM_COMPONENT(self_component,
         			"`inputs[%" PRIu64  "]` param is not a string :(", inputs_i);
-			return BT_COMPONENT_CLASS_INIT_METHOD_STATUS_ERROR;
+			return BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_ERROR;
 		}
 
 		const char *path = bt_value_string_get(input_value);
@@ -469,16 +470,16 @@ can_source_create_ports_from_inputs(
 		if (add_port_status != BT_SELF_COMPONENT_ADD_PORT_STATUS_OK) {
 			BT_CURRENT_THREAD_ERROR_APPEND_CAUSE_FROM_COMPONENT(self_component,
 				"failed to add output port :(");
-			return BT_COMPONENT_CLASS_INIT_METHOD_STATUS_ERROR;
+			return BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_ERROR;
 		}
 
 		source_data->ports_data.push_back(std::move(port_data));
 	}
 
-	return BT_COMPONENT_CLASS_INIT_METHOD_STATUS_OK;
+	return BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_OK;
 }
 
-static bt_component_class_init_method_status
+static bt_component_class_initialize_method_status
 create_trace_class_from_databases(
 		bt_self_component *self_component,
 		const bt_value *params,
@@ -489,20 +490,20 @@ create_trace_class_from_databases(
 	if (!databases_value) {
 		BT_CURRENT_THREAD_ERROR_APPEND_CAUSE_FROM_COMPONENT(self_component,
         		"missing `databases` params entry :(");
-		return BT_COMPONENT_CLASS_INIT_METHOD_STATUS_ERROR;
+		return BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_ERROR;
 	}
 
 	if (bt_value_get_type(databases_value) != BT_VALUE_TYPE_ARRAY) {
 		BT_CURRENT_THREAD_ERROR_APPEND_CAUSE_FROM_COMPONENT(self_component,
         		"`databases` param is not an array :(");
-		return BT_COMPONENT_CLASS_INIT_METHOD_STATUS_ERROR;
+		return BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_ERROR;
 	}
 
 	source_data->clock_class.reset(bt_clock_class_create(self_component));
 	if (!source_data->clock_class) {
 		BT_CURRENT_THREAD_ERROR_APPEND_CAUSE_FROM_COMPONENT(self_component,
         		"failed to create clock class :(");
-		return BT_COMPONENT_CLASS_INIT_METHOD_STATUS_MEMORY_ERROR;
+		return BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_MEMORY_ERROR;
 	}
 
 	bt_clock_class_set_frequency(source_data->clock_class.get(), 1000);
@@ -511,14 +512,14 @@ create_trace_class_from_databases(
 	if (!source_data->trace_class) {
 		BT_CURRENT_THREAD_ERROR_APPEND_CAUSE_FROM_COMPONENT(self_component,
         		"failed to create trace class :(");
-		return BT_COMPONENT_CLASS_INIT_METHOD_STATUS_MEMORY_ERROR;
+		return BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_MEMORY_ERROR;
 	}
 
 	source_data->stream_class.reset(bt_stream_class_create(source_data->trace_class.get()));
 	if (!source_data->stream_class) {
 		BT_CURRENT_THREAD_ERROR_APPEND_CAUSE_FROM_COMPONENT(self_component,
         		"failed to create stream class :(");
-		return BT_COMPONENT_CLASS_INIT_METHOD_STATUS_MEMORY_ERROR;
+		return BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_MEMORY_ERROR;
 	}
 
 	bt_stream_class_set_default_clock_class_status set_default_cc_status;
@@ -526,13 +527,13 @@ create_trace_class_from_databases(
 		source_data->stream_class.get(),
 		source_data->clock_class.get());
 	if (set_default_cc_status != BT_STREAM_CLASS_SET_DEFAULT_CLOCK_CLASS_STATUS_OK) {
-		return (bt_component_class_init_method_status) set_default_cc_status;
+		return (bt_component_class_initialize_method_status) set_default_cc_status;
 	}
 
 	bt_stream_class_set_name_status sc_set_name_status;
 	sc_set_name_status = bt_stream_class_set_name(source_data->stream_class.get(), "can");
 	if (sc_set_name_status != BT_STREAM_CLASS_SET_NAME_STATUS_OK) {
-		return (bt_component_class_init_method_status) sc_set_name_status;
+		return (bt_component_class_initialize_method_status) sc_set_name_status;
 	}
 
 	{
@@ -541,13 +542,13 @@ create_trace_class_from_databases(
 		if (!source_data->unknown_event_class) {
 			BT_CURRENT_THREAD_ERROR_APPEND_CAUSE_FROM_COMPONENT(self_component,
 				"failed to create event class :(");
-			return BT_COMPONENT_CLASS_INIT_METHOD_STATUS_MEMORY_ERROR;
+			return BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_MEMORY_ERROR;
 		}
 
 		bt_event_class_set_name_status ec_set_name_status;
 		ec_set_name_status = bt_event_class_set_name(source_data->unknown_event_class.get(), "UNKNOWN");
 		if (ec_set_name_status != BT_EVENT_CLASS_SET_NAME_STATUS_OK) {
-			return (bt_component_class_init_method_status) ec_set_name_status;
+			return (bt_component_class_initialize_method_status) ec_set_name_status;
 		}
 
 		bt_trace_class *tc = source_data->trace_class.get();
@@ -555,31 +556,31 @@ create_trace_class_from_databases(
 		if (!payload) {
 			BT_CURRENT_THREAD_ERROR_APPEND_CAUSE_FROM_COMPONENT(self_component,
 				"failed to create struct field class :(");
-			return BT_COMPONENT_CLASS_INIT_METHOD_STATUS_MEMORY_ERROR;
+			return BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_MEMORY_ERROR;
 		}
 
 		// TODO: this should be an integer.
-		bt_field_class_ref id(bt_field_class_real_create(tc));
+		bt_field_class_ref id(bt_field_class_real_double_precision_create(tc));
 		if (!id) {
 			BT_CURRENT_THREAD_ERROR_APPEND_CAUSE_FROM_COMPONENT(self_component,
 				"failed to create real field class :(");
-			return BT_COMPONENT_CLASS_INIT_METHOD_STATUS_MEMORY_ERROR;
+			return BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_MEMORY_ERROR;
 		}
 
 		bt_field_class_structure_append_member_status append_member_status;
 		append_member_status = bt_field_class_structure_append_member(
 			payload.get(), "id", id.get());
 		if (append_member_status != BT_FIELD_CLASS_STRUCTURE_APPEND_MEMBER_STATUS_OK) {
-			return (bt_component_class_init_method_status) append_member_status;
+			return (bt_component_class_initialize_method_status) append_member_status;
 		}
 
 		// TODO: this should probably be an array of uint8_t.
 		for (int i = 0; i < 8; i++) {
-			bt_field_class_ref byte(bt_field_class_real_create(tc));
+			bt_field_class_ref byte(bt_field_class_real_double_precision_create(tc));
 			if (!byte) {
 				BT_CURRENT_THREAD_ERROR_APPEND_CAUSE_FROM_COMPONENT(self_component,
 					"failed to create real field class :(");
-				return BT_COMPONENT_CLASS_INIT_METHOD_STATUS_MEMORY_ERROR;
+				return BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_MEMORY_ERROR;
 			}
 
 			std::stringstream name;
@@ -589,7 +590,7 @@ create_trace_class_from_databases(
 			append_member_status = bt_field_class_structure_append_member(
 				payload.get(), name.str().c_str(), byte.get());
 			if (append_member_status != BT_FIELD_CLASS_STRUCTURE_APPEND_MEMBER_STATUS_OK) {
-				return (bt_component_class_init_method_status) append_member_status;
+				return (bt_component_class_initialize_method_status) append_member_status;
 			}
 		}
 
@@ -597,7 +598,7 @@ create_trace_class_from_databases(
 		set_fc_status = bt_event_class_set_payload_field_class(
 			source_data->unknown_event_class.get(), payload.get());
 		if (set_fc_status != BT_EVENT_CLASS_SET_FIELD_CLASS_STATUS_OK) {
-			return (bt_component_class_init_method_status) set_fc_status;
+			return (bt_component_class_initialize_method_status) set_fc_status;
 		}
 	}
 
@@ -609,7 +610,7 @@ create_trace_class_from_databases(
 		if (bt_value_get_type(database_value) != BT_VALUE_TYPE_STRING) {
 			BT_CURRENT_THREAD_ERROR_APPEND_CAUSE_FROM_COMPONENT(self_component,
         			"`databases[%" PRIu64  "]` param is not a string :(", db_i);
-			return BT_COMPONENT_CLASS_INIT_METHOD_STATUS_ERROR;
+			return BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_ERROR;
 		}
 
 		const char *dbc_path = bt_value_string_get(database_value);
@@ -617,7 +618,7 @@ create_trace_class_from_databases(
 		if (!source_data->dbc) {
 			BT_CURRENT_THREAD_ERROR_APPEND_CAUSE_FROM_COMPONENT(self_component,
         			"failed to open database file `%s`", dbc_path);
-			return BT_COMPONENT_CLASS_INIT_METHOD_STATUS_ERROR;
+			return BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_ERROR;
 		}
 
 		for (message_list_t *msg_node = source_data->dbc->message_list;
@@ -633,7 +634,7 @@ create_trace_class_from_databases(
 					if (can_msg.multiplexor) {
 						BT_CURRENT_THREAD_ERROR_APPEND_CAUSE_FROM_COMPONENT(
 							self_component, "i don't support multiple multiplexors yet :(");
-						return BT_COMPONENT_CLASS_INIT_METHOD_STATUS_ERROR;
+						return BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_ERROR;
 					}
 
 					can_msg.multiplexor = sig;
@@ -665,31 +666,31 @@ create_trace_class_from_databases(
 			auto create_members_for_signals = [](
 					bt_field_class *payload, const std::vector<signal_t *> &signals,
 					bt_trace_class *tc, bt_self_component *self_component)
-						-> bt_component_class_init_method_status {
+						-> bt_component_class_initialize_method_status {
 				for (signal_t *sig : signals) {
-					bt_field_class *member = bt_field_class_real_create(tc);
+					bt_field_class *member = bt_field_class_real_double_precision_create(tc);
 					if (!member) {
 						BT_CURRENT_THREAD_ERROR_APPEND_CAUSE_FROM_COMPONENT(self_component,
 							"failed to create real field class :(");
-						return BT_COMPONENT_CLASS_INIT_METHOD_STATUS_MEMORY_ERROR;
+						return BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_MEMORY_ERROR;
 					}
 
 					bt_field_class_structure_append_member_status append_member_status;
 					append_member_status = bt_field_class_structure_append_member(
 						payload, sig->name, member);
 					if (append_member_status != BT_FIELD_CLASS_STRUCTURE_APPEND_MEMBER_STATUS_OK) {
-						return (bt_component_class_init_method_status) append_member_status;
+						return (bt_component_class_initialize_method_status) append_member_status;
 					}
 				}
 
-				return BT_COMPONENT_CLASS_INIT_METHOD_STATUS_OK;
+				return BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_OK;
 			};
 
 			if (can_msg.multiplexor) {
 				if (can_msg.multiplexed_signals.empty()) {
 					BT_CURRENT_THREAD_ERROR_APPEND_CAUSE_FROM_COMPONENT(
 						self_component, "multiplexor signal but no multiplexed signals :(");
-					return BT_COMPONENT_CLASS_INIT_METHOD_STATUS_ERROR;
+					return BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_ERROR;
 				}
 
 				for (auto item : can_msg.multiplexed_signals) {
@@ -700,13 +701,13 @@ create_trace_class_from_databases(
 					if (!event_class) {
 						BT_CURRENT_THREAD_ERROR_APPEND_CAUSE_FROM_COMPONENT(self_component,
 							"failed to create event class :(");
-						return BT_COMPONENT_CLASS_INIT_METHOD_STATUS_MEMORY_ERROR;
+						return BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_MEMORY_ERROR;
 					}
 
 					bt_event_class_set_name_status ec_set_name_status;
 					ec_set_name_status = bt_event_class_set_name(event_class.get(), msg->name);
 					if (ec_set_name_status != BT_EVENT_CLASS_SET_NAME_STATUS_OK) {
-						return (bt_component_class_init_method_status) ec_set_name_status;
+						return (bt_component_class_initialize_method_status) ec_set_name_status;
 					}
 
 					bt_trace_class *tc = source_data->trace_class.get();
@@ -714,19 +715,19 @@ create_trace_class_from_databases(
 					if (!payload) {
 						BT_CURRENT_THREAD_ERROR_APPEND_CAUSE_FROM_COMPONENT(self_component,
 							"failed to create struct field class :(");
-						return BT_COMPONENT_CLASS_INIT_METHOD_STATUS_MEMORY_ERROR;
+						return BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_MEMORY_ERROR;
 					}
 
-					bt_component_class_init_method_status status;
+					bt_component_class_initialize_method_status status;
 					status = create_members_for_signals(
 						payload.get(), can_msg.non_multiplexed_signals, tc, self_component);
-					if (status != BT_COMPONENT_CLASS_INIT_METHOD_STATUS_OK) {
+					if (status != BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_OK) {
 						return status;
 					}
 
 					status = create_members_for_signals(
 						payload.get(), sigs_for_val, tc, self_component);
-					if (status != BT_COMPONENT_CLASS_INIT_METHOD_STATUS_OK) {
+					if (status != BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_OK) {
 						return status;
 					}
 
@@ -734,7 +735,7 @@ create_trace_class_from_databases(
 					set_fc_status = bt_event_class_set_payload_field_class(
 						event_class.get(), payload.get());
 					if (set_fc_status != BT_EVENT_CLASS_SET_FIELD_CLASS_STATUS_OK) {
-						return (bt_component_class_init_method_status) set_fc_status;
+						return (bt_component_class_initialize_method_status) set_fc_status;
 					}
 
 					can_msg.event_classes[mux_val] = std::move(event_class);
@@ -744,13 +745,13 @@ create_trace_class_from_databases(
 				if (!event_class) {
 					BT_CURRENT_THREAD_ERROR_APPEND_CAUSE_FROM_COMPONENT(self_component,
 						"failed to create event class :(");
-					return BT_COMPONENT_CLASS_INIT_METHOD_STATUS_MEMORY_ERROR;
+					return BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_MEMORY_ERROR;
 				}
 
 				bt_event_class_set_name_status ec_set_name_status;
 				ec_set_name_status = bt_event_class_set_name(event_class.get(), msg->name);
 				if (ec_set_name_status != BT_EVENT_CLASS_SET_NAME_STATUS_OK) {
-					return (bt_component_class_init_method_status) ec_set_name_status;
+					return (bt_component_class_initialize_method_status) ec_set_name_status;
 				}
 
 				bt_trace_class *tc = source_data->trace_class.get();
@@ -758,13 +759,13 @@ create_trace_class_from_databases(
 				if (!payload) {
 					BT_CURRENT_THREAD_ERROR_APPEND_CAUSE_FROM_COMPONENT(self_component,
 						"failed to create struct field class :(");
-					return BT_COMPONENT_CLASS_INIT_METHOD_STATUS_MEMORY_ERROR;
+					return BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_MEMORY_ERROR;
 				}
 
-				bt_component_class_init_method_status status;
+				bt_component_class_initialize_method_status status;
 				status = create_members_for_signals(
 					payload.get(), can_msg.non_multiplexed_signals, tc, self_component);
-				if (status != BT_COMPONENT_CLASS_INIT_METHOD_STATUS_OK) {
+				if (status != BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_OK) {
 					return status;
 				}
 
@@ -772,7 +773,7 @@ create_trace_class_from_databases(
 				set_fc_status = bt_event_class_set_payload_field_class(
 					event_class.get(), payload.get());
 				if (set_fc_status != BT_EVENT_CLASS_SET_FIELD_CLASS_STATUS_OK) {
-					return (bt_component_class_init_method_status) set_fc_status;
+					return (bt_component_class_initialize_method_status) set_fc_status;
 				}
 
 				can_msg.event_classes[0] = std::move(event_class);
@@ -780,40 +781,41 @@ create_trace_class_from_databases(
   		}
 	}
 
-	return BT_COMPONENT_CLASS_INIT_METHOD_STATUS_OK;
+	return BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_OK;
 }
 
-static bt_component_class_init_method_status
+static bt_component_class_initialize_method_status
 can_source_init (bt_self_component_source *self_component_source,
+		bt_self_component_source_configuration *config,
 		const bt_value *params, void *init_method_data)
 {
 	bt_self_component *self_component =
 		bt_self_component_source_as_self_component(self_component_source);
-	bt_component_class_init_method_status status;
+	bt_component_class_initialize_method_status status;
 
 	if (bt_value_get_type(params) != BT_VALUE_TYPE_MAP) {
 		BT_CURRENT_THREAD_ERROR_APPEND_CAUSE_FROM_COMPONENT(self_component,
         		"params is not a map :(");
-		return BT_COMPONENT_CLASS_INIT_METHOD_STATUS_ERROR;
+		return BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_ERROR;
 	}
 
 	std::unique_ptr<can_source_data> source_data(new can_source_data);
 
 	status = can_source_create_ports_from_inputs(
 		self_component_source, params, source_data.get());
-	if (status != BT_COMPONENT_CLASS_INIT_METHOD_STATUS_OK) {
+	if (status != BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_OK) {
 		return status;
 	}
 
 	status = create_trace_class_from_databases(
 		self_component, params, source_data.get());
-	if (status != BT_COMPONENT_CLASS_INIT_METHOD_STATUS_OK) {
+	if (status != BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_OK) {
 		return status;
 	}
 
 	bt_self_component_set_data(self_component, source_data.release());
 
-	return BT_COMPONENT_CLASS_INIT_METHOD_STATUS_OK;
+	return BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_OK;
 }
 
 static void
@@ -826,6 +828,6 @@ can_source_fini(bt_self_component_source *self_component_source)
 }
 
 BT_PLUGIN_SOURCE_COMPONENT_CLASS(CANSource, can_iterator_next);
-BT_PLUGIN_SOURCE_COMPONENT_CLASS_INIT_METHOD(CANSource, can_source_init);
+BT_PLUGIN_SOURCE_COMPONENT_CLASS_INITIALIZE_METHOD(CANSource, can_source_init);
 BT_PLUGIN_SOURCE_COMPONENT_CLASS_FINALIZE_METHOD(CANSource, can_source_fini);
-BT_PLUGIN_SOURCE_COMPONENT_CLASS_MESSAGE_ITERATOR_INIT_METHOD(CANSource, can_iter_init);
+BT_PLUGIN_SOURCE_COMPONENT_CLASS_MESSAGE_ITERATOR_INITIALIZE_METHOD(CANSource, can_iter_init);
