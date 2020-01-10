@@ -231,7 +231,7 @@ class PlotSink(bt2._UserSinkComponent):
             plot.received_event(ts, msg.event)
 
     def _user_graph_is_configured(self):
-        self._iter = self._create_input_port_message_iterator(self._input_ports["in"])
+        self._iter = self._create_message_iterator(self._input_ports["in"])
 
     @staticmethod
     def create_plot(params):
