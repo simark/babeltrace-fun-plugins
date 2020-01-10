@@ -132,10 +132,10 @@ struct can_source_data {
 	bt_event_class_ref unknown_event_class;
 };
 
-static bt_component_class_message_iterator_initialize_method_status
+static bt_message_iterator_class_initialize_method_status
 can_iter_init(bt_self_message_iterator *message_iterator,
 		bt_self_message_iterator_configuration *config,
-		bt_self_component_source *self_component,
+		bt_self_component *self_component,
 		bt_self_component_port_output *port_output)
 {
 	bt_self_component_port *port =
@@ -148,29 +148,29 @@ can_iter_init(bt_self_message_iterator *message_iterator,
 	if (!iter_data->trace_file) {
 		BT_CURRENT_THREAD_ERROR_APPEND_CAUSE_FROM_MESSAGE_ITERATOR(
 			message_iterator, "unable to open file `%s` :(", trace_path);
-		return BT_COMPONENT_CLASS_MESSAGE_ITERATOR_INITIALIZE_METHOD_STATUS_ERROR;
+		return BT_MESSAGE_ITERATOR_CLASS_INITIALIZE_METHOD_STATUS_ERROR;
 	}
 
 	iter_data->trace.reset(bt_trace_create(iter_data->port_data->source_data->trace_class.get()));
 	if (!iter_data->trace) {
 		BT_CURRENT_THREAD_ERROR_APPEND_CAUSE_FROM_MESSAGE_ITERATOR(
 			message_iterator, "failed to create trace :(", trace_path);
-		return BT_COMPONENT_CLASS_MESSAGE_ITERATOR_INITIALIZE_METHOD_STATUS_MEMORY_ERROR;
+		return BT_MESSAGE_ITERATOR_CLASS_INITIALIZE_METHOD_STATUS_MEMORY_ERROR;
 	}
 
 	iter_data->stream.reset(bt_stream_create(iter_data->port_data->source_data->stream_class.get(), iter_data->trace.get()));
 	if (!iter_data->stream) {
 		BT_CURRENT_THREAD_ERROR_APPEND_CAUSE_FROM_MESSAGE_ITERATOR(
 			message_iterator, "failed to create stream :(", trace_path);
-		return BT_COMPONENT_CLASS_MESSAGE_ITERATOR_INITIALIZE_METHOD_STATUS_MEMORY_ERROR;
+		return BT_MESSAGE_ITERATOR_CLASS_INITIALIZE_METHOD_STATUS_MEMORY_ERROR;
 	}
 
 	bt_self_message_iterator_set_data(message_iterator, iter_data.release());
 
-	return BT_COMPONENT_CLASS_MESSAGE_ITERATOR_INITIALIZE_METHOD_STATUS_OK;
+	return BT_MESSAGE_ITERATOR_CLASS_INITIALIZE_METHOD_STATUS_OK;
 }
 
-static bt_component_class_message_iterator_next_method_status
+static bt_message_iterator_class_next_method_status
 can_iterator_next_starting(bt_self_message_iterator *message_iterator,
 		bt_message_array_const msgs,
 		uint64_t capacity, uint64_t *count)
@@ -186,7 +186,7 @@ can_iterator_next_starting(bt_self_message_iterator *message_iterator,
 	if (!stream_beg_msg) {
 		BT_CURRENT_THREAD_ERROR_APPEND_CAUSE_FROM_MESSAGE_ITERATOR(
 			message_iterator, "failed to create message :(");
-		return BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_MEMORY_ERROR;
+		return BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_MEMORY_ERROR;
 	}
 
 	msgs[0] = stream_beg_msg.release();
@@ -195,7 +195,7 @@ can_iterator_next_starting(bt_self_message_iterator *message_iterator,
 
 	iter_data->state = can_iter_data::can_iter_state::reading;
 
-	return BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_OK;
+	return BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_OK;
 }
 
 static uint64_t
@@ -207,7 +207,7 @@ read_signal_value(const signal_t *sig, const uint8_t *data) {
 	return val;
 }
 
-static bt_component_class_message_iterator_next_method_status
+static bt_message_iterator_class_next_method_status
 can_iterator_create_event_message(
 		bt_self_message_iterator *message_iterator,
 		can_iter_data *iter_data,
@@ -235,7 +235,7 @@ can_iterator_create_event_message(
 			if (ec_it == can_msg.event_classes.end()) {
 				BT_CURRENT_THREAD_ERROR_APPEND_CAUSE_FROM_MESSAGE_ITERATOR(
 					message_iterator, "unknown multiplexor value :(");
-				return BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_ERROR;
+				return BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_ERROR;
 			}
 
 			bt_event_class *event_class = ec_it->second.get();
@@ -315,7 +315,7 @@ can_iterator_create_event_message(
 		if (!event_msg) {
 			BT_CURRENT_THREAD_ERROR_APPEND_CAUSE_FROM_MESSAGE_ITERATOR(
 				message_iterator, "failed to create message :(");
-			return BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_MEMORY_ERROR;
+			return BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_MEMORY_ERROR;
 		}
 
 		bt_event *event = bt_message_event_borrow_event(event_msg.get());
@@ -329,10 +329,10 @@ can_iterator_create_event_message(
 
 	*msg_out = std::move(event_msg);
 
-	return BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_OK;
+	return BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_OK;
 }
 
-static bt_component_class_message_iterator_next_method_status
+static bt_message_iterator_class_next_method_status
 can_iterator_next_reading(bt_self_message_iterator *message_iterator,
 		bt_message_array_const msgs,
 		uint64_t capacity, uint64_t *count)
@@ -347,12 +347,12 @@ can_iterator_next_reading(bt_self_message_iterator *message_iterator,
 		if (ferror(trace_file)) {
 			BT_CURRENT_THREAD_ERROR_APPEND_CAUSE_FROM_MESSAGE_ITERATOR(
 				message_iterator, "failed to read from trace file :(");
-			return BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_ERROR;
+			return BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_ERROR;
 		}
 
 		if (feof(trace_file)) {
 			iter_data->state = can_iter_data::can_iter_state::finishing;
-			return BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_AGAIN;
+			return BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_AGAIN;
 		}
 	}
 
@@ -363,20 +363,20 @@ can_iterator_next_reading(bt_self_message_iterator *message_iterator,
 	const uint8_t *payload_bytes = &data[8];
 
 	bt_message_ref event_msg;
-	bt_component_class_message_iterator_next_method_status status;
+	bt_message_iterator_class_next_method_status status;
 	status = can_iterator_create_event_message(message_iterator, iter_data, timestamp,
 		frame_id, payload_bytes, &event_msg);
-	if (status != BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_OK) {
+	if (status != BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_OK) {
 		return status;
 	}
 
 	msgs[0] = event_msg.release();
 	*count = 1;
 
-	return BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_OK;
+	return BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_OK;
 }
 
-static bt_component_class_message_iterator_next_method_status
+static bt_message_iterator_class_next_method_status
 can_iterator_next_finishing(bt_self_message_iterator *message_iterator,
 		bt_message_array_const msgs,
 		uint64_t capacity, uint64_t *count)
@@ -392,7 +392,7 @@ can_iterator_next_finishing(bt_self_message_iterator *message_iterator,
 	if (!stream_end_msg) {
 		BT_CURRENT_THREAD_ERROR_APPEND_CAUSE_FROM_MESSAGE_ITERATOR(
 			message_iterator, "failed to create message :(");
-		return BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_MEMORY_ERROR;
+		return BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_MEMORY_ERROR;
 	}
 
 	msgs[0] = stream_end_msg.release();
@@ -401,10 +401,10 @@ can_iterator_next_finishing(bt_self_message_iterator *message_iterator,
 
 	iter_data->state = can_iter_data::can_iter_state::done;
 
-	return BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_OK;
+	return BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_OK;
 }
 
-static bt_component_class_message_iterator_next_method_status
+static bt_message_iterator_class_next_method_status
 can_iterator_next(bt_self_message_iterator *message_iterator,
 		bt_message_array_const msgs,
 		uint64_t capacity, uint64_t *count)
@@ -420,11 +420,11 @@ can_iterator_next(bt_self_message_iterator *message_iterator,
 	case can_iter_data::can_iter_state::finishing:
 		return can_iterator_next_finishing(message_iterator, msgs, capacity, count);
 	case can_iter_data::can_iter_state::done:
-		return 	BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_END;
+		return 	BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_END;
 	default:
 		BT_CURRENT_THREAD_ERROR_APPEND_CAUSE_FROM_MESSAGE_ITERATOR(message_iterator,
         		"unexpected iter_data state value :(");
-		return BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_ERROR;
+		return BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_ERROR;
 	}
 }
 
