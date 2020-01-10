@@ -45,7 +45,7 @@ class MyFirstSink(bt2._UserSinkComponent):
         self._port = self._add_input_port("some-name")
 
     def _user_graph_is_configured(self):
-        self._it = self._create_input_port_message_iterator(self._port)
+        self._it = self._create_message_iterator(self._port)
 
     def _user_consume(self):
         # Consume one message and print it.
