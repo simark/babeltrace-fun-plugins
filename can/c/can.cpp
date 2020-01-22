@@ -135,7 +135,6 @@ struct can_source_data {
 static bt_message_iterator_class_initialize_method_status
 can_iter_init(bt_self_message_iterator *message_iterator,
 		bt_self_message_iterator_configuration *config,
-		bt_self_component *self_component,
 		bt_self_component_port_output *port_output)
 {
 	bt_self_component_port *port =
@@ -830,4 +829,4 @@ can_source_fini(bt_self_component_source *self_component_source)
 BT_PLUGIN_SOURCE_COMPONENT_CLASS(CANSource, can_iterator_next);
 BT_PLUGIN_SOURCE_COMPONENT_CLASS_INITIALIZE_METHOD(CANSource, can_source_init);
 BT_PLUGIN_SOURCE_COMPONENT_CLASS_FINALIZE_METHOD(CANSource, can_source_fini);
-BT_PLUGIN_SOURCE_COMPONENT_CLASS_MESSAGE_ITERATOR_INITIALIZE_METHOD(CANSource, can_iter_init);
+BT_PLUGIN_SOURCE_COMPONENT_CLASS_MESSAGE_ITERATOR_CLASS_INITIALIZE_METHOD(CANSource, can_iter_init);
