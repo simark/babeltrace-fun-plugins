@@ -2,6 +2,13 @@ import bt2
 import cantools
 import struct
 
+
+# It seems that in version 2.0.0, even though the framework supports creation of streams
+# without packet support, the utils.trimmer filter is not capable of parsing such streams.
+#
+# This is the extended version which provides very rudimentary packet support -
+# it essentially provides a single packet which contains all events.
+#
 bt2.register_plugin(
     module_name=__name__,
     name="can",
@@ -19,7 +26,6 @@ def log_info(cur_log_level):
 def print_info(text):
     print("INFO: {}".format(text))
 
-
 class CANIterator(bt2._UserMessageIterator):
     def __init__(self, config, port):
         path, trace_class, self._messages = port.user_data
@@ -29,10 +35,46 @@ class CANIterator(bt2._UserMessageIterator):
 
         stream_class = trace_class[0]
         self._stream = trace.create_stream(stream_class)
-        self._init_msgs = [self._create_stream_beginning_message(self._stream)]
-        self._end_msgs = [self._create_stream_end_message(self._stream)]
+        self._packet = self._stream.create_packet()
+        self._init_msgs = [
+            self._create_stream_beginning_message(self._stream),
+            self._create_packet_beginning_message(self._packet, default_clock_snapshot=0)
+        ]
+        self._end_msgs = [
+            # packet end created in _next_end_packet
+            # TODO: maybe lazy evaluate _last_timestamp here?
+            #
+            self._create_stream_end_message(self._stream)
+        ]
 
         self._next = self._next_init
+
+    def _get_frame(self):
+        # Custom binary format parsing.
+        #
+        # [bytes 0 -  3] timestamp
+        # [bytes 4 -  7] frame ID (standard or extended)
+        # [bytes 8 - 15] up to 64 bits of data
+
+        msg = self._file.read(16)
+        if msg == b"":
+            return None
+
+        # Tuple:
+        # timestamp, frame_id, data
+        return struct.unpack("<ii8s", msg)
+
+    # Based on
+    #   tests/bindings/python/bt2/test_message_iterator.py
+    #
+    # TODO: check if timestamp from file actually in ns
+    #
+    def _user_seek_ns_from_origin(self, ns_from_origin):
+        # return to beginning
+        self._file.seek(0)
+
+        while self._get_frame()[0] < ns_from_origin:
+            pass
 
     def _create_decoded_event(self, timestamp, frame_id, bytedata):
         if len(self._messages[frame_id]) == 2:
@@ -46,7 +88,7 @@ class CANIterator(bt2._UserMessageIterator):
             raise ValueError
 
         event_msg = self._create_event_message(
-            event_class, self._stream, default_clock_snapshot=timestamp
+            event_class, self._packet, default_clock_snapshot=timestamp
         )
 
         for key in event_msg.event.payload_field.keys():
@@ -58,7 +100,7 @@ class CANIterator(bt2._UserMessageIterator):
         event_class = self._messages[None]
 
         event_msg = self._create_event_message(
-            event_class, self._stream, default_clock_snapshot=timestamp
+            event_class, self._packet, default_clock_snapshot=timestamp
         )
 
         event_msg.event.payload_field["id"] = frame_id
@@ -75,18 +117,15 @@ class CANIterator(bt2._UserMessageIterator):
             return self._next()
 
     def _next_events(self):
-        # Custom binary format parsing.
-        #
-        # [bytes 0 -  3] timestamp
-        # [bytes 4 -  7] frame ID (standard or extended)
-        # [bytes 8 - 15] up to 64 bits of data
 
-        msg = self._file.read(16)
-        if msg == b"":
-            self._next = self._next_end
+        frame = self._get_frame()
+
+        if not frame:
+            self._next = self._next_end_packet
             return self._next()
 
-        timestamp, frame_id, data = struct.unpack("<ii8s", msg)
+        timestamp, frame_id, data = frame
+        self._last_timestamp = timestamp
 
         if frame_id in self._messages:
             event_msg = self._create_decoded_event(timestamp, frame_id, data)
@@ -94,6 +133,14 @@ class CANIterator(bt2._UserMessageIterator):
             event_msg = self._create_unknown_event(timestamp, frame_id, data)
 
         return event_msg
+
+    def _next_end_packet(self):
+        self._next = self._next_end
+
+        return self._create_packet_end_message(
+            self._packet,
+            default_clock_snapshot=self._last_timestamp
+        )
 
     def _next_end(self):
         if len(self._end_msgs) > 0:
@@ -121,7 +168,10 @@ class CANSource(bt2._UserSourceComponent, message_iterator_class=CANIterator):
         clock_class = self._create_clock_class(frequency=1000)
         trace_class = self._create_trace_class()
         stream_class = trace_class.create_stream_class(
-            name="can", default_clock_class=clock_class
+            name="can", default_clock_class=clock_class,
+            supports_packets=True,
+            packets_have_beginning_default_clock_snapshot=True,
+            packets_have_end_default_clock_snapshot=True
         )
 
         if log_info(self.logging_level):
