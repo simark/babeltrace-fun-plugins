@@ -46,27 +46,6 @@ class EventBuffer:
             self._lbufsiz += 1
 
 
-@bt2.plugin_component_class
-class EventBufferSink(bt2._UserSinkComponent):
-    """
-    Sink component that stores event messages in provided EventBuffer.
-    """
-
-    def __init__(self, config, params, obj):
-        self._port = self._add_input_port("in")
-        self._buffer = obj
-
-    def _user_graph_is_configured(self):
-        self._it = self._create_message_iterator(self._port)
-
-    def _user_consume(self):
-        msg = next(self._it)
-
-        if type(msg) == bt2._EventMessageConst:
-            # Save event to buffer
-            self._buffer.append((msg.default_clock_snapshot.value, msg.event.name))
-
-
 class EventBufferTableModel(QAbstractTableModel):
     """
     Data model that uses fetchMore mechanism for on-demand row loading.
