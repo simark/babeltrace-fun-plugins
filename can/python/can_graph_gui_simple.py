@@ -40,7 +40,11 @@ class SinkEmitter(bt2._UserSinkComponent):
         if type(msg) == bt2._EventMessageConst:
 
             # We are running in the gui thread, so we can freely access / modify gui objects
-            self._tableModel.appendRow((QStandardItem(str(msg.default_clock_snapshot.value)), QStandardItem(msg.event.name)))
+            self._tableModel.appendRow((
+                QStandardItem(str(msg.default_clock_snapshot.value)),   # Timestamp
+                QStandardItem(msg.event.name),                          # Event
+                QStandardItem(str(msg.event.payload_field))             # Payload
+            ))
             self._tableView.scrollToBottom()
 
 
@@ -52,18 +56,19 @@ def main():
     app = QApplication([])
 
     # Data model
-    model = QStandardItemModel()
-    model.setHorizontalHeaderLabels(['name', 'timestamp'])
+    tableModel = QStandardItemModel()
+    tableModel.setHorizontalHeaderLabels(('Timestamp', 'Event', 'Payload'))
 
     # Table window
     tableView = QTableView()
     tableView.setWindowTitle("Simple Babeltrace2 GUI demo")
-    tableView.setModel(model)
+    tableView.setModel(tableModel)
 
     tableView.setEditTriggers(QTableWidget.NoEditTriggers)    # read-only
     tableView.verticalHeader().setDefaultSectionSize(10)      # row height
     tableView.horizontalHeader().setStretchLastSection(True)  # last column resizes to widget width
-
+    tableView.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
+    tableView.resize(450, 400)
 
     # Create graph and add components
     graph = bt2.Graph()
@@ -76,7 +81,7 @@ def main():
        })
     )
 
-    graph_sink = graph.add_component(SinkEmitter, 'sink', obj=(model, tableView))
+    graph_sink = graph.add_component(SinkEmitter, 'sink', obj=(tableModel, tableView))
 
     # Connect components together
     graph.connect_ports(

@@ -8,10 +8,13 @@ import argparse
 
 def load_plugins(system_plugin_path, plugin_path, verbose=True):
     """
-    Loads system & user plugins and returns them as an unified dict
+    Loads system & user plugins and returns them as a unified dict
 
-    :param system_plugin_path: path to system plugins (searched recursively) - if None, uses default system paths and BABELTRACE_PLUGIN_PATH (non-recursively)
+    :param system_plugin_path: path to system plugins (searched recursively)
+        - if None, uses default system paths and BABELTRACE_PLUGIN_PATH (non-recursive search)
+
     :param plugin_path: path to user plugins
+
     :return: dict with all found plugins
     """
 
