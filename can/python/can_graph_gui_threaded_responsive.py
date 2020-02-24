@@ -3,6 +3,11 @@
 
 """
 Creates and runs a graph with a can.CANSource source and in-app sink, which delegates stream info to the GUI.
+A more complex example which allows for faster graph execution, while allowing for a decently responsive ui.
+
+Thread-based implementation, with all the workaround to make it as fast as possible.
+
+Check the event loop implementation, which is *by far* the best way of doing it and is *just as fast/faster*.
 ---
 Please note: libbabeltrace2 python library (bt2) depends on its core C library.
 ---
@@ -12,85 +17,15 @@ LIBBABELTRACE2_PLUGIN_PROVIDER_DIR = [babeltrace2 build folder]/src/python-plugi
 """
 
 import bt2
-import numpy as np
-
 import time
-import argparse
+import numpy as np
 
 from PyQt5.Qt import *
 from PyQt5.QtWidgets import *
 
-
-# Event buffer, implemented as a list of fixed size buffers.
-#
-class EventBuffer:
-    def __init__(self, event_block_sz, event_dtype):
-        self._blocksz = event_block_sz
-        self._dtype = event_dtype
-        self._buffer = [ np.empty(self._blocksz, dtype=self._dtype) ]
-        self._fblocks = 0    # Number of fully used blocks
-        self._lbufsiz = 0    # Number of saved events in the last block
-
-    def __len__(self):
-        return self._fblocks * self._blocksz + self._lbufsiz
-
-    def __getitem__(self, idx):
-        if idx > len(self):
-            raise IndexError
-
-        return self._buffer[idx // self._blocksz][idx % self._blocksz]
-
-    @property
-    def dtype(self):
-        return self._dtype
-
-    def append(self, event):
-        if self._lbufsiz == self._blocksz:
-            new_block = np.empty(self._blocksz, dtype=self._dtype)
-            new_block[0] = event
-            self._buffer.append(new_block)
-
-            self._lbufsiz = 1
-            self._fblocks += 1
-        else:
-            self._buffer[self._fblocks][self._lbufsiz] = event
-            self._lbufsiz += 1
-
-# Loads system & user plugins to 'plugins' global
-def load_plugins():
-    global system_plugin_path, plugin_path
-    global plugins
-
-    # Load plugins
-    system_plugins = bt2.find_plugins_in_path(system_plugin_path) if system_plugin_path else bt2.find_plugins()
-    user_plugins = bt2.find_plugins_in_path(plugin_path)
-
-    assert system_plugins, "No system plugins found!"
-    assert user_plugins, "No user plugins found!"
-
-    # Convert _PluginSet to dict
-    plugins = {
-        **{plugin.name: plugin for plugin in system_plugins},
-        **{plugin.name: plugin for plugin in user_plugins}
-    }
-
-# Sink component that emits signals @ event
-@bt2.plugin_component_class
-class EventBufferSink(bt2._UserSinkComponent):
-
-    def __init__(self, config, params, obj):
-        self._port = self._add_input_port("in")
-        self._buffer = obj
-
-    def _user_graph_is_configured(self):
-        self._it = self._create_message_iterator(self._port)
-
-    def _user_consume(self):
-        msg = next(self._it)
-
-        if type(msg) == bt2._EventMessageConst:
-            # Save event to buffer
-            self._buffer.append((msg.default_clock_snapshot.value, msg.event.name))
+# import local modules
+from graph.event_buffer import EventBuffer, EventBufferSink, EventBufferTableModel
+from graph.utils import load_plugins, cmd_parser
 
 
 # Graph thread manager - or how to enter Signal / Slot / QtEvent hell
@@ -162,7 +97,7 @@ class BT2GraphThreadManager(QObject):
 #   https://mayaposch.wordpress.com/2011/11/01/how-to-really-truly-use-qthreads-the-full-explanation/
 #   https://www.kdab.com/wp-content/uploads/stories/slides/DD12/Multithreading_Presentation.pdf
 #
-# IDEs have only support for QtThreads
+# IDEs have limited support for QtThreads
 #   https://youtrack.jetbrains.com/issue/PY-24162
 #   https://intellij-support.jetbrains.com/hc/en-us/community/posts/203420404-Pycharm-debugger-not-stopping-on-QThread-breakpoints
 #
@@ -215,72 +150,22 @@ class BT2GraphThread(QThread):
         last_wait_time = time.clock_gettime(time.CLOCK_PROCESS_CPUTIME_ID)
 
         # Run graph
-        while self._running:
-            self._graph.run_once()
+        try:
+            while self._running:
+                self._graph.run_once()
 
-            if time.clock_gettime(time.CLOCK_PROCESS_CPUTIME_ID) - last_wait_time > self._thread_time:
-                # Block graph thread
-                self._blocking_signal.emit()
-                # Reset timer when we return
-                last_wait_time = time.clock_gettime(time.CLOCK_PROCESS_CPUTIME_ID)
+                if time.clock_gettime(time.CLOCK_PROCESS_CPUTIME_ID) - last_wait_time > self._thread_time:
+                    # Block graph thread
+                    self._blocking_signal.emit()
+                    # Reset timer when we return
+                    last_wait_time = time.clock_gettime(time.CLOCK_PROCESS_CPUTIME_ID)
+        except bt2.Stop:
+            print("Graph finished execution.")
 
         print("Graph thread done.")
 
     def stop(self):
         self._running = False
-
-
-# Data model that uses fetchMore mechanism for on-demand row loading.
-#
-# More info on
-#   https://doc.qt.io/qt-5/qabstracttablemodel.html
-#   https://sateeshkumarb.wordpress.com/2012/04/01/paginated-display-of-table-data-in-pyqt/
-#   PyQt5-5.xx.x.devX/examples/itemviews/fetchmore.py
-#   PyQt5-5.xx.x.devX/examples/itemviews/storageview.py
-#   PyQt5-5.xx.x.devX/examples/multimediawidgets/player.py
-#
-class EventTableModel(QAbstractTableModel):
-    def __init__(self, data_obj=None, parent=None):
-        super().__init__()
-
-        self._data = data_obj
-        self._data_headers = None
-
-        self._data_columnCount = 0   # Displayed column count
-        self._data_rowCount = 0      # Displayed row count
-
-    def rowCount(self, parent=QModelIndex()):
-        return self._data_rowCount if not parent.isValid() else 0
-
-    def columnCount(self, parent=QModelIndex()):
-        return self._data_columnCount if not parent.isValid() else 0
-
-    def data(self, index, role=Qt.DisplayRole):
-        if role == Qt.DisplayRole and index.isValid() and self._data:
-            # This is where we return data to be displayed
-            return str(self._data[index.row()][index.column()])
-
-        return None
-
-    def setHorizontalHeaderLabels(self, headers):
-        self._data_headers = headers
-        self._data_columnCount = len(headers)
-
-    def headerData(self, section, orientation, role=Qt.DisplayRole):
-        if role == Qt.DisplayRole:
-            if orientation == Qt.Horizontal and section < len(self._data_headers):
-                return self._data_headers[section]
-        return None
-
-    def canFetchMore(self, index):
-        return self._data_rowCount < len(self._data)
-
-    def fetchMore(self, index):
-        itemsToFetch = len(self._data) - self._data_rowCount
-
-        self.beginInsertRows(QModelIndex(), self._data_rowCount + 1, self._data_rowCount + itemsToFetch)
-        self._data_rowCount += itemsToFetch
-        self.endInsertRows()
 
 
 # MainWindow
@@ -293,7 +178,7 @@ class MainWindow(QMainWindow):
         self._buffer = buffer
         self._model = model
 
-        self.setWindowTitle("Babeltrace2 GUI demo")
+        self.setWindowTitle("Responsive Babeltrace2 GUI demo")
 
         # Table view
         self._tableView = QTableView()
@@ -352,6 +237,7 @@ class MainWindow(QMainWindow):
             #
             self._tableView.scrollTo(self._model.index(self._model.rowCount()-1, 0), QAbstractItemView.PositionAtBottom)
 
+
 # GUI Application
 def main():
     app = QApplication([])
@@ -360,7 +246,7 @@ def main():
     buffer = EventBuffer(event_block_sz=500, event_dtype=np.dtype([('timestamp', np.int32), ('name', 'U35')]))
 
     # Data model
-    model = EventTableModel(buffer)
+    model = EventBufferTableModel(buffer)
     model.setHorizontalHeaderLabels(buffer.dtype.names)
 
     # Graph thread
@@ -376,28 +262,14 @@ def main():
     app.exec_()
     print("Done.")
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
-    parser.add_argument(
-        "--system-plugin-path", type=str, default=None,
-        help="Specify folder for system plugins (recursive!). "
-             "Alternatively, set BABELTRACE_PLUGIN_PATH (non-recursive!)"
-    )
-    parser.add_argument(
-        "--plugin-path", type=str, default="../../python/",
-        help="Path to 'bt_user_can.(so|py)' plugin"
-    )
-    parser.add_argument(
-        "--CANSource-data-path", type=str, default="../../test.data",
-        help="Path to test data required by bt_user_can"
-    )
-    parser.add_argument(
-        "--CANSource-dbc-path", type=str, default="../../database.dbc",
-        help="Path to DBC (CAN Database) required by bt_user_can"
-    )
 
-    # Add parameters to globals
+if __name__ == "__main__":
+    global system_plugin_path, plugin_path
+    global plugins
+
+    # Parse command line and add parsed parameters to globals
+    parser = cmd_parser(__doc__)
     globals().update(vars(parser.parse_args()))
 
-    load_plugins()
+    plugins = load_plugins(system_plugin_path, plugin_path)
     main()
