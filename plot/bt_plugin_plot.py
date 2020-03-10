@@ -187,7 +187,7 @@ class Plot(object):
         for logger in self._loggers:
             x = logger.get_x_data()
             y = logger.get_y_data()
-            line, = plt.plot(x, y, figure=figure)
+            (line,) = plt.plot(x, y, figure=figure)
             line.set_label(logger.get_name())
 
         figure.gca().legend()
