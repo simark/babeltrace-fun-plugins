@@ -1,0 +1,5 @@
+language: python
+install:
+  - pip install black
+script:
+  - black --check --diff .
