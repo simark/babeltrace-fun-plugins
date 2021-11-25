@@ -146,21 +146,21 @@ can_iter_init(bt_self_message_iterator *message_iterator,
 	iter_data->trace_file = fopen_unique(trace_path, "rb");
 	if (!iter_data->trace_file) {
 		BT_CURRENT_THREAD_ERROR_APPEND_CAUSE_FROM_MESSAGE_ITERATOR(
-			message_iterator, "unable to open file `%s` :(", trace_path);
+			message_iterator, "unable to open file: path=%s", trace_path);
 		return BT_MESSAGE_ITERATOR_CLASS_INITIALIZE_METHOD_STATUS_ERROR;
 	}
 
 	iter_data->trace.reset(bt_trace_create(iter_data->port_data->source_data->trace_class.get()));
 	if (!iter_data->trace) {
 		BT_CURRENT_THREAD_ERROR_APPEND_CAUSE_FROM_MESSAGE_ITERATOR(
-			message_iterator, "failed to create trace :(", trace_path);
+			message_iterator, "failed to create trace: path=%s", trace_path);
 		return BT_MESSAGE_ITERATOR_CLASS_INITIALIZE_METHOD_STATUS_MEMORY_ERROR;
 	}
 
 	iter_data->stream.reset(bt_stream_create(iter_data->port_data->source_data->stream_class.get(), iter_data->trace.get()));
 	if (!iter_data->stream) {
 		BT_CURRENT_THREAD_ERROR_APPEND_CAUSE_FROM_MESSAGE_ITERATOR(
-			message_iterator, "failed to create stream :(", trace_path);
+			message_iterator, "failed to create stream: path=%s", trace_path);
 		return BT_MESSAGE_ITERATOR_CLASS_INITIALIZE_METHOD_STATUS_MEMORY_ERROR;
 	}
 
