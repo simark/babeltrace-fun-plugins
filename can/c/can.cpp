@@ -4,7 +4,6 @@
 #include <cinttypes>
 #include <cstdio>
 #include <cstring>
-#include <functional>
 #include <map>
 #include <memory>
 #include <sstream>
