@@ -126,6 +126,18 @@ struct can_source_data {
   bt_event_class_ref unknown_event_class;
 };
 
+static bt_component_class_get_supported_mip_versions_method_status
+can_get_supported_mip_versions(
+    bt_self_component_class_source *self_component_class,
+    const bt_value *params, void *initialize_method_data,
+    bt_logging_level logging_level,
+    bt_integer_range_set_unsigned *supported_versions) {
+
+  return static_cast<
+      bt_component_class_get_supported_mip_versions_method_status>(
+      bt_integer_range_set_unsigned_add_range(supported_versions, 0, 2));
+}
+
 static bt_message_iterator_class_initialize_method_status
 can_iter_init(bt_self_message_iterator *message_iterator,
               bt_self_message_iterator_configuration *config,
@@ -826,6 +838,8 @@ static void can_source_fini(bt_self_component_source *self_component_source) {
 }
 
 BT_PLUGIN_SOURCE_COMPONENT_CLASS(CANSource, can_iterator_next);
+BT_PLUGIN_SOURCE_COMPONENT_CLASS_GET_SUPPORTED_MIP_VERSIONS_METHOD(
+    CANSource, can_get_supported_mip_versions);
 BT_PLUGIN_SOURCE_COMPONENT_CLASS_INITIALIZE_METHOD(CANSource, can_source_init);
 BT_PLUGIN_SOURCE_COMPONENT_CLASS_FINALIZE_METHOD(CANSource, can_source_fini);
 BT_PLUGIN_SOURCE_COMPONENT_CLASS_MESSAGE_ITERATOR_CLASS_INITIALIZE_METHOD(
